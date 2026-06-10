@@ -15,6 +15,12 @@ spring:
     username: sa
     password:
 
+  # 启动时加载测试表结构
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
   # Redis 禁用（测试环境不需要）
   data:
     redis:

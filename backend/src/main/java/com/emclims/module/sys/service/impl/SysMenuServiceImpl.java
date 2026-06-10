@@ -119,7 +119,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     private List<SysMenuVO> buildTree(List<SysMenuVO> allMenus, Long parentId) {
         return allMenus.stream()
-                .filter(menu -> menu.getParentId().equals(parentId))
+                .filter(menu -> menu.getParentId() != null && menu.getParentId().equals(parentId))
                 .sorted(Comparator.comparing(SysMenuVO::getSort))
                 .map(menu -> {
                     menu.setChildren(buildTree(allMenus, menu.getId()));
@@ -130,7 +130,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     private List<MenuTreeNode> buildMenuTree(List<MenuTreeNode> allMenus, Long parentId) {
         return allMenus.stream()
-                .filter(menu -> menu.getParentId().equals(parentId))
+                .filter(menu -> menu.getParentId() != null && menu.getParentId().equals(parentId))
                 .sorted(Comparator.comparing(MenuTreeNode::getSort))
                 .map(menu -> {
                     menu.setChildren(buildMenuTree(allMenus, menu.getId()));

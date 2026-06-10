@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS sys_dept (
     email       VARCHAR(100),
     sort        INT DEFAULT 0,
     status      SMALLINT DEFAULT 1,
+    dept_id     BIGINT,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     create_by   BIGINT,
@@ -28,6 +29,7 @@ CREATE TABLE IF NOT EXISTS sys_role (
     data_scope  SMALLINT DEFAULT 2,
     status      SMALLINT DEFAULT 1,
     sort        INT DEFAULT 0,
+    dept_id     BIGINT,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     create_by   BIGINT,
@@ -58,3 +60,5 @@ CREATE TABLE IF NOT EXISTS sys_user (
     deleted       SMALLINT DEFAULT 0,
     remark        VARCHAR(500)
 );
+
+

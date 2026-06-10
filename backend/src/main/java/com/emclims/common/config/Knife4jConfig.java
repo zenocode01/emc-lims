@@ -53,10 +53,9 @@ public class Knife4jConfig {
                 .components(new Components()
                         .addSecuritySchemes("Authorization",
                                 new SecurityScheme()
-                                        .name("Authorization")
                                         .type(SecurityScheme.Type.APIKEY)
                                         .in(SecurityScheme.In.HEADER)
-                                        .paramName("Authorization")
+                                        .name("Authorization")
                                         .description("请输入 JWT Token，格式：Bearer {token}")))
                 .addSecurityItem(new SecurityRequirement().addList("Authorization"));
     }

@@ -77,6 +77,7 @@ class DataPermissionLoaderTest {
 
         // 创建测试用户
         SysUser user = new SysUser();
+        user.setUsername("testuser1");
         user.setPhone("13800000001");
         user.setPassword("$2a$10$testpasswordhash"); // BCrypt hash
         user.setNickname("测试用户");
@@ -121,6 +122,7 @@ class DataPermissionLoaderTest {
 
         // 创建测试用户
         SysUser user = new SysUser();
+        user.setUsername("testuser2");
         user.setPhone("13800000002");
         user.setPassword("$2a$10$testpasswordhash");
         user.setNickname("全部数据用户");

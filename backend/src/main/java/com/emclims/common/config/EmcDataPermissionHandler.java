@@ -1,14 +1,15 @@
 package com.emclims.common.config;
 
-import com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionInterceptor;
 import com.emclims.common.security.DataPermissionContext;
+import com.baomidou.mybatisplus.extension.plugins.handler.DataPermissionHandler;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Column;
 
 /**
- * 数据权限处理器
+ * EMC LIMS 数据权限处理器
  * 根据用户角色的 data_scope 自动添加部门数据过滤条件
  *
  * data_scope 含义：
@@ -17,14 +18,15 @@ import net.sf.jsqlparser.schema.Column;
  * 3 - 本部门及子部门数据
  * 4 - 仅本人数据
  */
-public class DataPermissionHandler extends DataPermissionInterceptor {
+public class EmcDataPermissionHandler implements DataPermissionHandler {
 
     @Override
-    public Expression getWhere(String tableName, Expression whereExpression) {
+    public Expression getSqlSegment(Expression whereExpression, String tableName) {
         Integer dataScope = DataPermissionContext.getDataScope();
         Long deptId = DataPermissionContext.getDeptId();
         Long userId = DataPermissionContext.getUserId();
 
+        // 未设置数据范围或部门ID时，不做过滤
         if (dataScope == null || deptId == null) {
             return whereExpression;
         }
@@ -39,20 +41,20 @@ public class DataPermissionHandler extends DataPermissionInterceptor {
             case 2:
                 // 2 - 本部门数据
                 deptExpression = new EqualsTo(new Column("dept_id"),
-                        new net.sf.jsqlparser.expression.LongExpression(deptId));
+                        new LongValue(deptId));
                 break;
             case 3:
                 // 3 - 本部门及子部门数据（简化处理：后续可使用 CTE 递归）
                 deptExpression = new EqualsTo(new Column("dept_id"),
-                        new net.sf.jsqlparser.expression.LongExpression(deptId));
+                        new LongValue(deptId));
                 break;
             case 4:
                 // 4 - 仅本人数据（创建人 + 所属部门）
                 deptExpression = new AndExpression(
                         new EqualsTo(new Column("create_by"),
-                                new net.sf.jsqlparser.expression.LongExpression(userId)),
+                                new LongValue(userId)),
                         new EqualsTo(new Column("dept_id"),
-                                new net.sf.jsqlparser.expression.LongExpression(deptId))
+                                new LongValue(deptId))
                 );
                 break;
             default:

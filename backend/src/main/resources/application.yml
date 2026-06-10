@@ -1,0 +1,81 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: emc-lims
+
+  # 数据源配置
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/emc_lims?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: emc_lims
+    password: emc_lims_2024
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+
+  # Redis 配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      timeout: 5000ms
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+  # Jackson 配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath:mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      table-underline: true
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# JWT 配置
+jwt:
+  secret: emc-lims-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm
+  expiration: 86400000  # 24小时
+  refresh-expiration: 604800000  # 7天
+
+# 日志配置
+logging:
+  level:
+    com.emclims: debug
+    org.springframework.security: info
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'
+
+# 文件存储配置
+file:
+  upload-path: /data/emc-lims/uploads
+  base-url: http://localhost:8080/api/files
+
+# Knife4j (OpenAPI) 配置
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn

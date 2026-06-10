@@ -1,0 +1,79 @@
+package com.emclims.module.sys.controller;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.emclims.common.response.R;
+import com.emclims.common.response.PageResult;
+import com.emclims.module.sys.dto.SysUserDTO;
+import com.emclims.module.sys.dto.SysUserQueryDTO;
+import com.emclims.module.sys.entity.SysUser;
+import com.emclims.module.sys.service.SysUserService;
+import com.emclims.module.sys.vo.SysUserVO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * 用户管理 Controller
+ */
+@Tag(name = "用户管理")
+@RestController
+@RequestMapping("/api/sys/user")
+public class SysUserController {
+
+    private final SysUserService userService;
+
+    public SysUserController(SysUserService userService) {
+        this.userService = userService;
+    }
+
+    @Operation(summary = "分页查询用户列表")
+    @GetMapping("/page")
+    public R<PageResult<SysUserVO>> page(SysUserQueryDTO queryDTO) {
+        Page<SysUserVO> page = userService.pageUsers(queryDTO);
+        return R.ok(PageResult.of(page));
+    }
+
+    @Operation(summary = "获取用户详情")
+    @GetMapping("/{id}")
+    public R<SysUserVO> detail(@PathVariable Long id) {
+        return R.ok(userService.getUserDetail(id));
+    }
+
+    @Operation(summary = "新增用户")
+    @PostMapping
+    public R<Void> create(@Valid @RequestBody SysUserDTO dto) {
+        userService.createUser(dto);
+        return R.ok();
+    }
+
+    @Operation(summary = "更新用户")
+    @PutMapping
+    public R<Void> update(@Valid @RequestBody SysUserDTO dto) {
+        userService.updateUser(dto);
+        return R.ok();
+    }
+
+    @Operation(summary = "批量删除用户")
+    @DeleteMapping("/batch")
+    public R<Void> deleteBatch(@RequestBody List<Long> ids) {
+        userService.deleteUsers(ids);
+        return R.ok();
+    }
+
+    @Operation(summary = "重置密码")
+    @PutMapping("/{id}/password")
+    public R<Void> resetPassword(@PathVariable Long id, @RequestParam String newPassword) {
+        userService.resetPassword(id, newPassword);
+        return R.ok();
+    }
+
+    @Operation(summary = "修改状态")
+    @PutMapping("/{id}/status")
+    public R<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status) {
+        userService.updateStatus(id, status);
+        return R.ok();
+    }
+}

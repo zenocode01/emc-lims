@@ -22,10 +22,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final SysMenuMapper menuMapper;
+    private final DataPermissionLoader dataPermissionLoader;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtils, SysMenuMapper menuMapper) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils, SysMenuMapper menuMapper,
+                                   DataPermissionLoader dataPermissionLoader) {
         this.jwtUtils = jwtUtils;
         this.menuMapper = menuMapper;
+        this.dataPermissionLoader = dataPermissionLoader;
     }
 
     @Override
@@ -46,9 +49,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 加载用户权限列表，供 PermissionInterceptor 使用
             List<String> permissions = menuMapper.selectPermissionsByUserId(userId);
             request.setAttribute("permissions", permissions);
+
+            // 加载数据权限上下文（部门隔离）
+            dataPermissionLoader.load(userId);
         }
 
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            // 请求结束后清理 ThreadLocal
+            dataPermissionLoader.clear();
+        }
     }
 
     /**

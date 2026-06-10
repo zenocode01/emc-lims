@@ -1,0 +1,32 @@
+# Maven build output
+backend/target/
+backend/*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+
+# Uploads
+/data/emc-lims/uploads/

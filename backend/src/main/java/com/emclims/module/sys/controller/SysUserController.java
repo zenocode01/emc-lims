@@ -20,7 +20,7 @@ import java.util.List;
  */
 @Tag(name = "用户管理")
 @RestController
-@RequestMapping("/api/sys/user")
+@RequestMapping("/sys/user")
 public class SysUserController {
 
     private final SysUserService userService;

@@ -26,10 +26,14 @@ public class PermissionConfig implements WebMvcConfigurer {
     /**
      * 注册权限拦截器
      */
+    /**
+     * 注册权限拦截器
+     * 注意：Spring 在匹配拦截器路径时已去除 context-path，因此路径不带 /api 前缀
+     */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(permissionInterceptor)
-                .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/auth/login", "/api/auth/refresh");
+                .addPathPatterns("/**")
+                .excludePathPatterns("/auth/login", "/auth/refresh");
     }
 }

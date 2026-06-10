@@ -1,5 +1,6 @@
 package com.emclims.common.security;
 
+import com.emclims.module.sys.mapper.SysMenuMapper;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,9 +21,11 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
+    private final SysMenuMapper menuMapper;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtils) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils, SysMenuMapper menuMapper) {
         this.jwtUtils = jwtUtils;
+        this.menuMapper = menuMapper;
     }
 
     @Override
@@ -39,6 +42,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 将用户信息放入请求属性，供后续使用
             request.setAttribute("userId", userId);
             request.setAttribute("username", username);
+
+            // 加载用户权限列表，供 PermissionInterceptor 使用
+            List<String> permissions = menuMapper.selectPermissionsByUserId(userId);
+            request.setAttribute("permissions", permissions);
         }
 
         filterChain.doFilter(request, response);
@@ -57,11 +64,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * 配置需要跳过认证的路径
+     * 注意：getRequestURI() 包含 context-path（/api），所以排除路径需加 /api 前缀
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         List<String> excludePaths = Arrays.asList(
-                "/auth/login",
+                "/api/auth/login",
+                "/api/auth/refresh",
                 "/api/doc.html",
                 "/api/webjars/",
                 "/api/swagger-resources",

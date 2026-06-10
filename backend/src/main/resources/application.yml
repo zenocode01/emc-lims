@@ -57,7 +57,7 @@ mybatis-plus:
 
 # JWT 配置
 jwt:
-  secret: emc-lims-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm
+  secret: emc-lims-jwt-secret-key-must-be-at-least-256-bits
   expiration: 86400000  # 24小时
   refresh-expiration: 604800000  # 7天
 

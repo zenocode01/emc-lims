@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 
 /**
  * 菜单/权限实体
- * 对应菜单表 sys_menu
+ * 对应数据库 sys_menu 表
  */
 @TableName("sys_menu")
 @Data
@@ -29,7 +29,7 @@ public class SysMenu extends BaseEntity {
     /** 权限标识 */
     private String permission;
 
-    /** 父菜单ID（0表示顶级菜单） */
+    /** 父菜单ID */
     private Long parentId;
 
     /** 排序 */
@@ -41,18 +41,12 @@ public class SysMenu extends BaseEntity {
     /** 是否隐藏（0-显示，1-隐藏） */
     private Integer isHidden;
 
-    /** 重定向地址 */
+    /** 重定向路径 */
     private String redirect;
 
     /** 状态（0-禁用，1-启用） */
     private Integer status;
 
-    /** 创建人 */
-    private Long createBy;
-
-    /** 更新人 */
-    private Long updateBy;
-
-    /** 部门ID */
+    /** 部门ID（数据权限用） */
     private Long deptId;
 }

@@ -4,7 +4,7 @@
 
     <!-- 根据用户ID查询角色ID列表 -->
     <select id="selectRoleIdsByUserId" resultType="java.lang.Long">
-        SELECT role_id FROM sys_user WHERE id = #{userId}
+        SELECT role_id FROM sys_user_role WHERE user_id = #{userId}
     </select>
 
 </mapper>

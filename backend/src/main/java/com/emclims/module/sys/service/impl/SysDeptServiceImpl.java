@@ -36,7 +36,7 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
 
     private List<SysDeptVO> buildTree(List<SysDeptVO> allDepts, Long parentId) {
         return allDepts.stream()
-                .filter(dept -> dept.getParentId().equals(parentId))
+                .filter(dept -> dept.getParentId() != null && dept.getParentId().equals(parentId))
                 .sorted(Comparator.comparing(SysDeptVO::getSort))
                 .map(dept -> {
                     dept.setChildren(buildTree(allDepts, dept.getId()));

@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Tag(name = "部门管理")
 @RestController
-@RequestMapping("/api/sys/dept")
+@RequestMapping("/sys/dept")
 public class SysDeptController {
 
     private final SysDeptService deptService;

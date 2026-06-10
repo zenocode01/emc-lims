@@ -1,7 +1,5 @@
 package com.emclims.module.auth.service.impl;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.emclims.common.exception.BusinessException;
 import com.emclims.common.security.JwtUtils;
@@ -11,11 +9,10 @@ import com.emclims.module.sys.entity.SysUser;
 import com.emclims.module.sys.mapper.SysMenuMapper;
 import com.emclims.module.sys.mapper.SysUserMapper;
 import com.emclims.module.auth.service.AuthService;
-import io.jsonwebtoken.Claims;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 认证 Service 实现
@@ -26,11 +23,14 @@ public class AuthServiceImpl implements AuthService {
     private final SysUserMapper userMapper;
     private final SysMenuMapper menuMapper;
     private final JwtUtils jwtUtils;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthServiceImpl(SysUserMapper userMapper, SysMenuMapper menuMapper, JwtUtils jwtUtils) {
+    public AuthServiceImpl(SysUserMapper userMapper, SysMenuMapper menuMapper,
+                           JwtUtils jwtUtils, PasswordEncoder passwordEncoder) {
         this.userMapper = userMapper;
         this.menuMapper = menuMapper;
         this.jwtUtils = jwtUtils;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -44,9 +44,8 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException("用户不存在");
         }
 
-        // 验证密码
-        String md5Password = DigestUtil.md5Hex(request.getPassword());
-        if (!md5Password.equals(user.getPassword())) {
+        // 验证密码（BCrypt）
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BusinessException("密码错误");
         }
 

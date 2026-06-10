@@ -41,11 +41,11 @@ public class SysUserVO {
 
     private String employeeCode;
 
-    private String createBy;
+    private Long createBy;
 
     private LocalDateTime createTime;
 
-    private String updateBy;
+    private Long updateBy;
 
     private LocalDateTime updateTime;
 }

@@ -1,5 +1,6 @@
 package com.emclims.module.sys.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.emclims.common.entity.BaseEntity;
 import lombok.Data;
@@ -7,17 +8,19 @@ import lombok.EqualsAndHashCode;
 
 /**
  * 部门实体
- * 对应部门表 sys_dept
+ * 对应数据库 sys_dept 表
  */
 @TableName("sys_dept")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class SysDept extends BaseEntity {
 
-    /** 部门名称 */
+    /** 部门名称（数据库字段名：name） */
+    @TableField("name")
     private String deptName;
 
-    /** 部门编码 */
+    /** 部门编码（数据库字段名：code） */
+    @TableField("code")
     private String deptCode;
 
     /** 部门类型（1-公司，2-部门，3-小组） */

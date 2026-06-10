@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Tag(name = "菜单管理")
 @RestController
-@RequestMapping("/api/sys/menu")
+@RequestMapping("/sys/menu")
 public class SysMenuController {
 
     private final SysMenuService menuService;

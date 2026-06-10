@@ -10,6 +10,7 @@ import com.emclims.module.sys.mapper.SysRoleMapper;
 import com.emclims.module.sys.mapper.SysRoleMenuMapper;
 import com.emclims.module.sys.service.SysRoleService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,6 +69,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void grantMenus(RoleMenuDTO dto) {
         // 先删除该角色的所有菜单关联
         roleMenuMapper.deleteByRoleId(dto.getRoleId());

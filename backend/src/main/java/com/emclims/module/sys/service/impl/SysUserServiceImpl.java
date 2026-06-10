@@ -1,7 +1,6 @@
 package com.emclims.module.sys.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -30,10 +29,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     private final SysDeptMapper deptMapper;
     private final SysRoleMapper roleMapper;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
-    public SysUserServiceImpl(SysDeptMapper deptMapper, SysRoleMapper roleMapper) {
+    public SysUserServiceImpl(SysDeptMapper deptMapper, SysRoleMapper roleMapper,
+                              org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.deptMapper = deptMapper;
         this.roleMapper = roleMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -114,7 +116,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         SysUser user = new SysUser();
         BeanUtils.copyProperties(dto, user);
-        user.setPassword(DigestUtil.md5Hex(dto.getPassword()));
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         this.save(user);
     }
 
@@ -135,7 +137,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         BeanUtils.copyProperties(dto, user, "password");
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-            user.setPassword(DigestUtil.md5Hex(dto.getPassword()));
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
         this.updateById(user);
     }
@@ -151,7 +153,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
-        user.setPassword(DigestUtil.md5Hex(newPassword));
+        user.setPassword(passwordEncoder.encode(newPassword));
         this.updateById(user);
     }
 

@@ -22,6 +22,7 @@ import com.emclims.module.sample.vo.SampleLogVO;
 import com.emclims.module.sample.vo.SampleVO;
 import com.emclims.module.sys.entity.SysUser;
 import com.emclims.module.sys.mapper.SysUserMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 /**
  * 样品 Service 实现
  */
+@Slf4j
 @Service
 public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> implements SampleService {
 
@@ -52,6 +54,7 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
 
     @Override
     public Page<SampleVO> pageSamples(SampleQueryDTO queryDTO) {
+        log.debug("查询样品列表，关键字: {}, 客户ID: {}, 状态: {}", queryDTO.getKeyword(), queryDTO.getCustomerId(), queryDTO.getStatus());
         Page<Sample> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
 
         LambdaQueryWrapper<Sample> wrapper = new LambdaQueryWrapper<>();
@@ -74,6 +77,7 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
 
     @Override
     public SampleVO getSampleDetail(Long id) {
+        log.debug("获取样品详情，样品ID: {}", id);
         Sample sample = this.getById(id);
         if (sample == null) {
             throw new BusinessException("样品不存在");
@@ -84,6 +88,7 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void receiveSample(SampleDTO dto) {
+        log.info("收样登记，客户ID: {}, 产品名称: {}", dto.getCustomerId(), dto.getProductName());
         // 使用编号规则引擎生成样品编号（格式：EMC-yyyyMMdd-xxxx）
         String sampleNo = numberingRuleEngine.generateNumber("SAMPLE_DEFAULT");
 
@@ -100,6 +105,7 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateSample(SampleDTO dto) {
+        log.info("更新样品信息，样品ID: {}", dto.getId());
         Sample sample = this.getById(dto.getId());
         if (sample == null) {
             throw new BusinessException("样品不存在");
@@ -111,12 +117,14 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteSamples(List<Long> ids) {
+        log.info("删除样品，样品ID列表: {}", ids);
         this.removeByIds(ids);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void changeStatus(SampleStatusDTO dto) {
+        log.info("变更样品状态，样品ID: {}, 目标状态: {}", dto.getSampleId(), dto.getToStatus());
         Sample sample = this.getById(dto.getSampleId());
         if (sample == null) {
             throw new BusinessException("样品不存在");

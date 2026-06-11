@@ -9,6 +9,7 @@ import com.emclims.module.sys.entity.SysRoleMenu;
 import com.emclims.module.sys.mapper.SysRoleMapper;
 import com.emclims.module.sys.mapper.SysRoleMenuMapper;
 import com.emclims.module.sys.service.SysRoleService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 /**
  * 角色 Service 实现
  */
+@Slf4j
 @Service
 public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements SysRoleService {
 
@@ -29,11 +31,13 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     @Override
     public SysRole getRoleDetail(Long id) {
+        log.debug("获取角色详情，角色ID: {}", id);
         return this.getById(id);
     }
 
     @Override
     public void createRole(SysRole role) {
+        log.info("创建角色，角色编码: {}, 角色名称: {}", role.getRoleCode(), role.getRoleName());
         // 检查角色编码是否已存在
         LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysRole::getRoleCode, role.getRoleCode());
@@ -45,21 +49,25 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     @Override
     public void updateRole(SysRole role) {
+        log.info("更新角色信息，角色ID: {}, 角色编码: {}", role.getId(), role.getRoleCode());
         this.updateById(role);
     }
 
     @Override
     public void deleteRole(Long id) {
+        log.info("删除角色，角色ID: {}", id);
         this.removeById(id);
     }
 
     @Override
     public void deleteRoles(List<Long> ids) {
+        log.info("批量删除角色，角色ID列表: {}", ids);
         this.removeByIds(ids);
     }
 
     @Override
     public void updateRoleStatus(Long id, Integer status) {
+        log.info("更新角色状态，角色ID: {}, 状态: {}", id, status);
         SysRole role = this.getById(id);
         if (role == null) {
             throw new BusinessException("角色不存在");
@@ -71,6 +79,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void grantMenus(RoleMenuDTO dto) {
+        log.info("授权角色菜单，角色ID: {}, 菜单数量: {}", dto.getRoleId(), dto.getMenuIds() != null ? dto.getMenuIds().size() : 0);
         // 先删除该角色的所有菜单关联
         roleMenuMapper.deleteByRoleId(dto.getRoleId());
         // 再插入新的菜单关联

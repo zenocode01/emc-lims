@@ -8,6 +8,7 @@ import com.emclims.module.customer.entity.CustomerContact;
 import com.emclims.module.customer.mapper.CustomerContactMapper;
 import com.emclims.module.customer.service.CustomerContactService;
 import com.emclims.module.customer.vo.CustomerContactVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +18,13 @@ import java.util.stream.Collectors;
 /**
  * 联系人 Service 实现
  */
+@Slf4j
 @Service
 public class CustomerContactServiceImpl extends ServiceImpl<CustomerContactMapper, CustomerContact> implements CustomerContactService {
 
     @Override
     public List<CustomerContactVO> listByCustomerId(Long customerId) {
+        log.debug("查询客户联系人，客户ID: {}", customerId);
         LambdaQueryWrapper<CustomerContact> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CustomerContact::getCustomerId, customerId)
                .orderByDesc(CustomerContact::getIsPrimary)
@@ -36,6 +39,7 @@ public class CustomerContactServiceImpl extends ServiceImpl<CustomerContactMappe
 
     @Override
     public void createContact(CustomerContactDTO dto) {
+        log.info("新增联系人，客户ID: {}, 姓名: {}", dto.getCustomerId(), dto.getName());
         CustomerContact contact = new CustomerContact();
         BeanUtils.copyProperties(dto, contact);
 
@@ -49,6 +53,7 @@ public class CustomerContactServiceImpl extends ServiceImpl<CustomerContactMappe
 
     @Override
     public void updateContact(CustomerContactDTO dto) {
+        log.info("更新联系人信息，联系人ID: {}", dto.getId());
         CustomerContact contact = this.getById(dto.getId());
         if (contact == null) {
             throw new BusinessException("联系人不存在");
@@ -65,11 +70,13 @@ public class CustomerContactServiceImpl extends ServiceImpl<CustomerContactMappe
 
     @Override
     public void deleteContact(Long id) {
+        log.info("删除联系人，联系人ID: {}", id);
         this.removeById(id);
     }
 
     @Override
     public void deleteContacts(List<Long> ids) {
+        log.info("批量删除联系人，联系人ID列表: {}", ids);
         this.removeByIds(ids);
     }
 

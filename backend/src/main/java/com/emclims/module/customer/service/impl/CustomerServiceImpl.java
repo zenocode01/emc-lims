@@ -12,6 +12,7 @@ import com.emclims.module.customer.mapper.CustomerMapper;
 import com.emclims.module.customer.service.CustomerService;
 import com.emclims.module.customer.vo.CustomerExportVO;
 import com.emclims.module.customer.vo.CustomerVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -21,11 +22,13 @@ import java.util.stream.Collectors;
 /**
  * 客户 Service 实现
  */
+@Slf4j
 @Service
 public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> implements CustomerService {
 
     @Override
     public Page<CustomerVO> pageCustomers(CustomerQueryDTO queryDTO) {
+        log.debug("查询客户列表，关键字: {}, 类型: {}, 行业: {}", queryDTO.getKeyword(), queryDTO.getType(), queryDTO.getIndustry());
         Page<Customer> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
 
         LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
@@ -53,6 +56,7 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
 
     @Override
     public CustomerVO getCustomerDetail(Long id) {
+        log.debug("获取客户详情，客户ID: {}", id);
         Customer customer = this.getById(id);
         if (customer == null) {
             throw new BusinessException("客户不存在");
@@ -65,6 +69,7 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
 
     @Override
     public void createCustomer(CustomerDTO dto) {
+        log.info("创建客户，客户名称: {}", dto.getName());
         // 检查客户名称是否已存在
         LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Customer::getName, dto.getName());
@@ -79,6 +84,7 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
 
     @Override
     public void updateCustomer(CustomerDTO dto) {
+        log.info("更新客户信息，客户ID: {}, 客户名称: {}", dto.getId(), dto.getName());
         Customer customer = this.getById(dto.getId());
         if (customer == null) {
             throw new BusinessException("客户不存在");
@@ -98,11 +104,13 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
 
     @Override
     public void deleteCustomers(List<Long> ids) {
+        log.info("删除客户，客户ID列表: {}", ids);
         this.removeByIds(ids);
     }
 
     @Override
     public void updateStatus(Long id, Integer status) {
+        log.info("更新客户状态，客户ID: {}, 状态: {}", id, status);
         Customer customer = this.getById(id);
         if (customer == null) {
             throw new BusinessException("客户不存在");
@@ -113,6 +121,7 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
 
     @Override
     public List<CustomerExportVO> exportCustomers(CustomerQueryDTO queryDTO) {
+        log.debug("导出客户列表，关键字: {}", queryDTO.getKeyword());
         LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
         wrapper.like(StrUtil.isNotBlank(queryDTO.getKeyword()), Customer::getName, queryDTO.getKeyword())
                .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), Customer::getContact, queryDTO.getKeyword())

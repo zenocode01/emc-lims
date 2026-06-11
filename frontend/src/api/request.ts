@@ -35,7 +35,7 @@ request.interceptors.request.use(
  */
 request.interceptors.response.use(
   (response: AxiosResponse) => {
-    const { code, message: msg, data, message: errMsg } = response.data
+    const { code, message: msg, data } = response.data
 
     // 业务逻辑成功
     if (code === 200 || code === 0) {

@@ -90,4 +90,20 @@ CREATE TABLE IF NOT EXISTS sys_numbering_sequence (
     CONSTRAINT uk_rule_date UNIQUE (rule_code, biz_date)
 );
 
+CREATE TABLE IF NOT EXISTS sys_user_role (
+    id          BIGINT PRIMARY KEY,
+    user_id     BIGINT NOT NULL,
+    role_id     BIGINT NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_user_role UNIQUE (user_id, role_id)
+);
+
+CREATE TABLE IF NOT EXISTS sys_role_menu (
+    id          BIGINT PRIMARY KEY,
+    role_id     BIGINT NOT NULL,
+    menu_id     BIGINT NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_role_menu UNIQUE (role_id, menu_id)
+);
+
 

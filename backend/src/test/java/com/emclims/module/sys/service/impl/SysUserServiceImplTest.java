@@ -10,6 +10,7 @@ import com.emclims.module.sys.entity.SysRole;
 import com.emclims.module.sys.entity.SysUser;
 import com.emclims.module.sys.mapper.SysDeptMapper;
 import com.emclims.module.sys.mapper.SysRoleMapper;
+import com.emclims.module.sys.mapper.SysUserRoleMapper;
 import com.emclims.module.sys.vo.SysUserVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,13 +38,16 @@ class SysUserServiceImplTest {
     private SysRoleMapper roleMapper;
 
     @Mock
+    private SysUserRoleMapper userRoleMapper;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     private SysUserServiceImpl userService;
 
     @BeforeEach
     void setUp() {
-        userService = new SysUserServiceImpl(deptMapper, roleMapper, passwordEncoder);
+        userService = new SysUserServiceImpl(deptMapper, roleMapper, userRoleMapper, passwordEncoder);
     }
 
     @Test
@@ -204,6 +208,7 @@ class SysUserServiceImplTest {
         doReturn(user).when(spy).getById(1L);
         when(deptMapper.selectById(10L)).thenReturn(dept);
         when(roleMapper.selectById(20L)).thenReturn(role);
+        when(userRoleMapper.selectRoleIdsByUserId(1L)).thenReturn(List.of(20L));
 
         SysUserVO vo = spy.getUserDetail(1L);
         assertNotNull(vo);

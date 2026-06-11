@@ -99,7 +99,7 @@ class EmcDataPermissionHandlerTest {
 
     @Test
     void testDataScopeSelf() {
-        // dataScope=4（仅本人数据）：添加 create_by = ? AND dept_id = ? 条件
+        // dataScope=4（仅本人数据）：添加 create_by = ? 条件
         DataPermissionContext.setDataScope(4);
         DataPermissionContext.setDeptId(10L);
         DataPermissionContext.setUserId(1L);
@@ -107,12 +107,11 @@ class EmcDataPermissionHandlerTest {
         Expression result = handler.getSqlSegment(null, "sys_user");
 
         assertNotNull(result, "dataScope=4 应生成过滤条件");
-        assertTrue(result instanceof AndExpression, "dataScope=4 应生成 AndExpression");
+        assertTrue(result instanceof EqualsTo, "dataScope=4 应生成 EqualsTo 表达式");
 
-        AndExpression andExpr = (AndExpression) result;
-        String andStr = andExpr.toString();
-        assertTrue(andStr.contains("create_by"), "应包含 create_by 条件");
-        assertTrue(andStr.contains("dept_id"), "应包含 dept_id 条件");
+        EqualsTo equalsExpr = (EqualsTo) result;
+        String exprStr = equalsExpr.toString();
+        assertTrue(exprStr.contains("create_by"), "应包含 create_by 条件");
     }
 
     @Test

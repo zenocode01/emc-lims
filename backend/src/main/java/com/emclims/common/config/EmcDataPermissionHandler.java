@@ -27,6 +27,11 @@ public class EmcDataPermissionHandler implements DataPermissionHandler {
         Long deptId = DataPermissionContext.getDeptId();
         Long userId = DataPermissionContext.getUserId();
 
+        // 关联表不需要数据权限过滤
+        if (isAssociationTable(tableName)) {
+            return whereExpression;
+        }
+
         // 未设置数据范围或部门ID时，不做过滤
         if (dataScope == null || deptId == null) {
             return whereExpression;
@@ -64,5 +69,22 @@ public class EmcDataPermissionHandler implements DataPermissionHandler {
             return deptExpression;
         }
         return new AndExpression(whereExpression, deptExpression);
+    }
+
+    /**
+     * 判断是否为不需要数据权限过滤的关联表
+     * MP 传入的 tableName 是 Mapper 接口的完整方法名（如：
+     * com.emclims.module.sys.mapper.SysUserRoleMapper.deleteById），
+     * 转小写后下划线被吞掉，需要根据 Mapper 类名判断。
+     */
+    private boolean isAssociationTable(String tableName) {
+        if (tableName == null) {
+            return false;
+        }
+        String lower = tableName.toLowerCase().replace("_", "");
+        return lower.contains("userrole")
+                || lower.contains("rolemenu")
+                || lower.contains("numberingsequence")
+                || lower.contains("auditlog");
     }
 }

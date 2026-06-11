@@ -3,9 +3,11 @@ package com.emclims.common.security;
 import com.emclims.module.sys.entity.SysDept;
 import com.emclims.module.sys.entity.SysRole;
 import com.emclims.module.sys.entity.SysUser;
+import com.emclims.module.sys.entity.SysUserRole;
 import com.emclims.module.sys.mapper.SysDeptMapper;
 import com.emclims.module.sys.mapper.SysRoleMapper;
 import com.emclims.module.sys.mapper.SysUserMapper;
+import com.emclims.module.sys.mapper.SysUserRoleMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,9 @@ class DataPermissionLoaderTest {
 
     @Autowired
     private SysDeptMapper deptMapper;
+
+    @Autowired
+    private SysUserRoleMapper userRoleMapper;
 
     @BeforeEach
     void setUp() {
@@ -82,9 +87,14 @@ class DataPermissionLoaderTest {
         user.setPassword("$2a$10$testpasswordhash"); // BCrypt hash
         user.setNickname("测试用户");
         user.setDeptId(dept.getId());
-        user.setRoleId(role.getId());
         user.setStatus(1);
         userMapper.insert(user);
+
+        // 关联用户角色
+        SysUserRole userRole = new SysUserRole();
+        userRole.setUserId(user.getId());
+        userRole.setRoleId(role.getId());
+        userRoleMapper.insert(userRole);
 
         try {
             // 加载数据权限
@@ -95,6 +105,7 @@ class DataPermissionLoaderTest {
             assertEquals(dept.getId(), DataPermissionContext.getDeptId());
             assertEquals(2, DataPermissionContext.getDataScope());
         } finally {
+            userRoleMapper.deleteById(userRole.getId());
             userMapper.deleteById(user.getId());
             roleMapper.deleteById(role.getId());
             deptMapper.deleteById(dept.getId());
@@ -127,9 +138,14 @@ class DataPermissionLoaderTest {
         user.setPassword("$2a$10$testpasswordhash");
         user.setNickname("全部数据用户");
         user.setDeptId(dept.getId());
-        user.setRoleId(role.getId());
         user.setStatus(1);
         userMapper.insert(user);
+
+        // 关联用户角色
+        SysUserRole userRole = new SysUserRole();
+        userRole.setUserId(user.getId());
+        userRole.setRoleId(role.getId());
+        userRoleMapper.insert(userRole);
 
         try {
             dataPermissionLoader.load(user.getId());
@@ -137,6 +153,7 @@ class DataPermissionLoaderTest {
             assertEquals(user.getId(), DataPermissionContext.getUserId());
             assertEquals(1, DataPermissionContext.getDataScope()); // 全部数据
         } finally {
+            userRoleMapper.deleteById(userRole.getId());
             userMapper.deleteById(user.getId());
             roleMapper.deleteById(role.getId());
             deptMapper.deleteById(dept.getId());

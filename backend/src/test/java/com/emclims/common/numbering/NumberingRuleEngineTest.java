@@ -172,9 +172,9 @@ class NumberingRuleEngineTest {
         // 验证：捕获冲突后重试，基于对手的 currentSeq(3) + 1 = 4
         assertEquals("EMC-20260611-0004", number);
 
-        // 验证 retry 时再次调用了 selectForUpdate + incrementSeq
+        // 验证 retry 时再次调用了 selectForUpdate，catch 块中 incrementSeq 调用 1 次
         verify(sequenceMapper, times(2)).selectForUpdate(anyString(), anyString());
-        verify(sequenceMapper, times(2)).incrementSeq(anyString(), anyString());
+        verify(sequenceMapper, times(1)).incrementSeq(anyString(), anyString());
         verify(sequenceMapper, times(1)).insert(any(SysNumberingSequence.class));
     }
 

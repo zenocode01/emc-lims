@@ -10,6 +10,7 @@ import com.emclims.module.sys.mapper.SysMenuMapper;
 import com.emclims.module.sys.mapper.SysRoleMenuMapper;
 import com.emclims.module.sys.service.SysMenuService;
 import com.emclims.module.sys.vo.SysMenuVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 /**
  * 菜单 Service 实现
  */
+@Slf4j
 @Service
 public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> implements SysMenuService {
 
@@ -32,6 +34,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     @Override
     public List<SysMenuVO> getMenuTree() {
+        log.debug("获取菜单树结构");
         LambdaQueryWrapper<SysMenu> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByAsc(SysMenu::getSort);
         List<SysMenu> menus = this.list(wrapper);
@@ -47,6 +50,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     @Override
     public List<MenuTreeNode> getMenuTreeByRoleId(Long roleId) {
+        log.debug("获取角色菜单权限，角色ID: {}", roleId);
         // 查询所有菜单
         List<SysMenu> allMenus = this.list();
 
@@ -72,6 +76,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     @Override
     public List<MenuTreeNode> getMenuTreeByUserId(Long userId) {
+        log.debug("获取用户菜单权限，用户ID: {}", userId);
         // 查询用户拥有的权限标识
         List<String> permissions = this.baseMapper.selectPermissionsByUserId(userId);
 
@@ -95,6 +100,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     @Override
     public void createMenu(SysMenu menu) {
+        log.info("创建菜单，菜单名称: {}, 类型: {}", menu.getMenuName(), menu.getMenuType());
         if (menu.getParentId() == null || menu.getParentId() == 0) {
             menu.setParentId(0L);
         }
@@ -103,11 +109,13 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     @Override
     public void updateMenu(SysMenu menu) {
+        log.info("更新菜单信息，菜单ID: {}, 菜单名称: {}", menu.getId(), menu.getMenuName());
         this.updateById(menu);
     }
 
     @Override
     public void deleteMenu(Long id) {
+        log.info("删除菜单，菜单ID: {}", id);
         // 检查是否有子菜单
         LambdaQueryWrapper<SysMenu> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysMenu::getParentId, id);

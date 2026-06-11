@@ -17,6 +17,7 @@ import com.emclims.module.sys.mapper.SysUserMapper;
 import com.emclims.module.sys.mapper.SysUserRoleMapper;
 import com.emclims.module.sys.service.SysUserService;
 import com.emclims.module.sys.vo.SysUserVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 /**
  * 用户 Service 实现
  */
+@Slf4j
 @Service
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
 
@@ -45,6 +47,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public Page<SysUserVO> pageUsers(SysUserQueryDTO queryDTO) {
+        log.debug("查询用户列表，关键字: {}, 部门ID: {}, 状态: {}", queryDTO.getKeyword(), queryDTO.getDeptId(), queryDTO.getStatus());
         Page<SysUser> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
 
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
@@ -102,6 +105,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public SysUserVO getUserDetail(Long id) {
+        log.debug("获取用户详情，用户ID: {}", id);
         SysUser user = this.getById(id);
         if (user == null) {
             throw new BusinessException("用户不存在");
@@ -131,6 +135,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public void createUser(SysUserDTO dto) {
+        log.info("创建用户，手机号: {}, 工号: {}", dto.getPhone(), dto.getEmployeeCode());
         // 检查手机号是否已存在
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysUser::getPhone, dto.getPhone());
@@ -149,6 +154,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public void updateUser(SysUserDTO dto) {
+        log.info("更新用户信息，用户ID: {}, 手机号: {}", dto.getId(), dto.getPhone());
         SysUser user = this.getById(dto.getId());
         if (user == null) {
             throw new BusinessException("用户不存在");
@@ -175,6 +181,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public void deleteUsers(List<Long> ids) {
+        log.info("删除用户，用户ID列表: {}", ids);
         // 先删除用户角色关联
         for (Long id : ids) {
             userRoleMapper.deleteByUserId(id);
@@ -184,6 +191,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public void resetPassword(Long id, String newPassword) {
+        log.info("重置用户密码，用户ID: {}", id);
         SysUser user = this.getById(id);
         if (user == null) {
             throw new BusinessException("用户不存在");
@@ -194,6 +202,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public void updateStatus(Long id, Integer status) {
+        log.info("更新用户状态，用户ID: {}, 状态: {}", id, status);
         SysUser user = this.getById(id);
         if (user == null) {
             throw new BusinessException("用户不存在");

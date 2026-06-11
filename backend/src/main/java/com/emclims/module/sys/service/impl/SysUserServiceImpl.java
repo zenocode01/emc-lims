@@ -17,6 +17,9 @@ import com.emclims.module.sys.mapper.SysUserMapper;
 import com.emclims.module.sys.mapper.SysUserRoleMapper;
 import com.emclims.module.sys.service.SysUserService;
 import com.emclims.module.sys.vo.SysUserVO;
+import com.emclims.module.sample.entity.Sample;
+import com.emclims.module.sample.mapper.SampleMapper;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -34,14 +37,17 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysDeptMapper deptMapper;
     private final SysRoleMapper roleMapper;
     private final SysUserRoleMapper userRoleMapper;
+    private final SampleMapper sampleMapper;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     public SysUserServiceImpl(SysDeptMapper deptMapper, SysRoleMapper roleMapper,
                               SysUserRoleMapper userRoleMapper,
+                              SampleMapper sampleMapper,
                               org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.deptMapper = deptMapper;
         this.roleMapper = roleMapper;
         this.userRoleMapper = userRoleMapper;
+        this.sampleMapper = sampleMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -58,22 +64,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                .eq(queryDTO.getStatus() != null, SysUser::getStatus, queryDTO.getStatus())
                .between(queryDTO.getCreateTimeStart() != null && queryDTO.getCreateTimeEnd() != null,
                        SysUser::getCreateTime, queryDTO.getCreateTimeStart(), queryDTO.getCreateTimeEnd())
+               .exists(queryDTO.getRoleId() != null,
+                       "SELECT 1 FROM sys_user_role WHERE user_id = sys_user.id AND role_id = {0}", queryDTO.getRoleId())
                .orderByDesc(SysUser::getCreateTime);
 
         Page<SysUser> userPage = this.page(page, wrapper);
-
-        // 按角色筛选
-        if (queryDTO.getRoleId() != null) {
-            List<Long> userIdsWithRole = userRoleMapper.selectUserIdsByRoleId(queryDTO.getRoleId());
-            if (!userPage.getRecords().isEmpty()) {
-                List<SysUser> filtered = userPage.getRecords().stream()
-                        .filter(u -> userIdsWithRole.contains(u.getId()))
-                        .collect(Collectors.toList());
-                userPage.getRecords().clear();
-                userPage.getRecords().addAll(filtered);
-                userPage.setTotal(userPage.getRecords().size());
-            }
-        }
 
         // 填充部门名和角色列表
         List<SysUserVO> voList = userPage.getRecords().stream().map(user -> {
@@ -180,8 +175,22 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Transactional
     public void deleteUsers(List<Long> ids) {
         log.info("删除用户，用户ID列表: {}", ids);
+
+        // 检查是否有业务引用（样品关联）
+        for (Long userId : ids) {
+            LambdaQueryWrapper<Sample> sampleWrapper = new LambdaQueryWrapper<>();
+            sampleWrapper.eq(Sample::getTesterId, userId)
+                         .or()
+                         .eq(Sample::getReceiveBy, userId);
+            Long sampleCount = sampleMapper.selectCount(sampleWrapper);
+            if (sampleCount > 0) {
+                throw new BusinessException("用户ID " + userId + " 关联了 " + sampleCount + " 个样品，无法删除");
+            }
+        }
+
         // 先删除用户角色关联
         for (Long id : ids) {
             userRoleMapper.deleteByUserId(id);

@@ -43,15 +43,23 @@ public class PermissionInterceptor implements HandlerInterceptor {
             throw new BusinessException("没有访问权限");
         }
 
-        String requiredPermission = permission.value();
+        // 按逗号分割权限列表，支持 "menu:create,menu:update,menu:delete" 格式
+        String[] requiredPermissions = permission.value().split(",");
+        // 去除每个权限的前后空格
+        for (int i = 0; i < requiredPermissions.length; i++) {
+            requiredPermissions[i] = requiredPermissions[i].trim();
+        }
+
         boolean hasPermission;
 
         if (permission.mode() == RequirePermission.PermissionMode.ALL) {
-            // 需要所有权限（AND 逻辑）
-            hasPermission = userPermissions.contains(requiredPermission);
+            // ALL 模式：用户需要拥有所有列出的权限
+            hasPermission = java.util.Arrays.stream(requiredPermissions)
+                    .allMatch(userPermissions::contains);
         } else {
-            // 需要任一权限（OR 逻辑，单个权限即满足）
-            hasPermission = userPermissions.contains(requiredPermission);
+            // OR 模式：用户只需拥有任一列出的权限
+            hasPermission = java.util.Arrays.stream(requiredPermissions)
+                    .anyMatch(userPermissions::contains);
         }
 
         if (!hasPermission) {

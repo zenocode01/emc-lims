@@ -5,7 +5,9 @@ import com.emclims.common.exception.BusinessException;
 import com.emclims.module.sys.dto.RoleMenuDTO;
 import com.emclims.module.sys.entity.SysRole;
 import com.emclims.module.sys.entity.SysRoleMenu;
+import com.emclims.module.sys.entity.SysUserRole;
 import com.emclims.module.sys.mapper.SysRoleMenuMapper;
+import com.emclims.module.sys.mapper.SysUserRoleMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,11 +29,14 @@ class SysRoleServiceImplTest {
     @Mock
     private SysRoleMenuMapper roleMenuMapper;
 
+    @Mock
+    private SysUserRoleMapper sysUserRoleMapper;
+
     private SysRoleServiceImpl roleService;
 
     @BeforeEach
     void setUp() {
-        roleService = new SysRoleServiceImpl(roleMenuMapper);
+        roleService = new SysRoleServiceImpl(roleMenuMapper, sysUserRoleMapper);
     }
 
     @Test
@@ -77,6 +82,7 @@ class SysRoleServiceImplTest {
     @Test
     void testDeleteRole() {
         SysRoleServiceImpl spy = spy(roleService);
+        doReturn(0L).when(sysUserRoleMapper).selectCount(any(LambdaQueryWrapper.class));
         doReturn(true).when(spy).removeById(1L);
 
         spy.deleteRole(1L);
@@ -84,12 +90,34 @@ class SysRoleServiceImplTest {
     }
 
     @Test
+    void testDeleteRoleWithUserRoleRef() {
+        SysRoleServiceImpl spy = spy(roleService);
+        doReturn(1L).when(sysUserRoleMapper).selectCount(any(LambdaQueryWrapper.class));
+
+        assertThrows(BusinessException.class, () -> spy.deleteRole(1L), "该角色已被用户关联，无法删除");
+        verify(spy, never()).removeById(any());
+    }
+
+    @Test
     void testDeleteRoles() {
         SysRoleServiceImpl spy = spy(roleService);
+        doReturn(0L).when(sysUserRoleMapper).selectCount(any(LambdaQueryWrapper.class));
         doReturn(true).when(spy).removeByIds(anyList());
 
         spy.deleteRoles(List.of(1L, 2L));
         verify(spy).removeByIds(List.of(1L, 2L));
+    }
+
+    @Test
+    @org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
+    void testDeleteRolesWithUserRoleRef() {
+        SysRoleServiceImpl spy = spy(roleService);
+        doReturn(0L).when(sysUserRoleMapper).selectCount(any(LambdaQueryWrapper.class));
+        doReturn(1L).when(sysUserRoleMapper).selectCount(any(LambdaQueryWrapper.class));
+        doReturn(true).when(spy).removeByIds(anyList());
+
+        assertThrows(BusinessException.class, () -> spy.deleteRoles(List.of(1L, 2L)), "角色ID 2 已被用户关联，无法删除");
+        verify(spy, never()).removeByIds(anyList());
     }
 
     @Test

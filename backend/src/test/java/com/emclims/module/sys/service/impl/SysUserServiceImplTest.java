@@ -12,6 +12,8 @@ import com.emclims.module.sys.mapper.SysDeptMapper;
 import com.emclims.module.sys.mapper.SysRoleMapper;
 import com.emclims.module.sys.mapper.SysUserRoleMapper;
 import com.emclims.module.sys.vo.SysUserVO;
+import com.emclims.module.sample.entity.Sample;
+import com.emclims.module.sample.mapper.SampleMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,13 +43,16 @@ class SysUserServiceImplTest {
     private SysUserRoleMapper userRoleMapper;
 
     @Mock
+    private SampleMapper sampleMapper;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     private SysUserServiceImpl userService;
 
     @BeforeEach
     void setUp() {
-        userService = new SysUserServiceImpl(deptMapper, roleMapper, userRoleMapper, passwordEncoder);
+        userService = new SysUserServiceImpl(deptMapper, roleMapper, userRoleMapper, sampleMapper, passwordEncoder);
     }
 
     @Test
@@ -133,10 +138,20 @@ class SysUserServiceImplTest {
     @Test
     void testDeleteUsers() {
         SysUserServiceImpl spy = spy(userService);
+        doReturn(0L).when(sampleMapper).selectCount(any(LambdaQueryWrapper.class));
         doReturn(true).when(spy).removeByIds(anyList());
 
         spy.deleteUsers(List.of(1L, 2L, 3L));
         verify(spy).removeByIds(List.of(1L, 2L, 3L));
+    }
+
+    @Test
+    void testDeleteUsersWithSampleRef() {
+        SysUserServiceImpl spy = spy(userService);
+        doReturn(1L).when(sampleMapper).selectCount(any(LambdaQueryWrapper.class));
+
+        assertThrows(BusinessException.class, () -> spy.deleteUsers(List.of(1L)), "用户ID 1 关联了 1 个样品，无法删除");
+        verify(spy, never()).removeByIds(anyList());
     }
 
     @Test

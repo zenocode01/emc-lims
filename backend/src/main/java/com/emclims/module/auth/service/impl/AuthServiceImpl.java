@@ -135,6 +135,24 @@ public class AuthServiceImpl implements AuthService {
         return response;
     }
 
+    @Override
+    public void resetPassword(Long userId, String oldPassword, String newPassword) {
+        // 查询用户
+        SysUser user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 验证旧密码
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new BusinessException("旧密码不正确");
+        }
+
+        // 设置新密码
+        user.setPassword(newPassword);
+        userMapper.updateById(user);
+    }
+
     private Long getCurrentUserId() {
         return com.emclims.common.security.SecurityUtils.getCurrentUserId();
     }

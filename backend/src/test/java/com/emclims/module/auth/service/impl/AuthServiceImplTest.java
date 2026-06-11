@@ -148,4 +148,51 @@ class AuthServiceImplTest {
         when(jwtUtils.validateToken("invalid.token")).thenReturn(false);
         assertThrows(BusinessException.class, () -> authService.refreshToken("invalid.token"), "Token 无效");
     }
+
+    @Test
+    void testResetPasswordSuccess() {
+        // 准备测试数据
+        Long userId = 1L;
+        String oldPassword = "password123";
+        String newPassword = "newPassword456";
+
+        SysUser user = new SysUser();
+        user.setId(userId);
+        user.setUsername("admin");
+        user.setPassword("$2a$10$encodedOldPassword");
+
+        when(userMapper.selectById(userId)).thenReturn(user);
+        when(passwordEncoder.matches(oldPassword, "$2a$10$encodedOldPassword")).thenReturn(true);
+
+        // 执行测试
+        authService.resetPassword(userId, oldPassword, newPassword);
+
+        // 验证结果
+        verify(userMapper).updateById(user);
+    }
+
+    @Test
+    void testResetPasswordUserNotFound() {
+        Long userId = 999L;
+
+        when(userMapper.selectById(userId)).thenReturn(null);
+
+        assertThrows(BusinessException.class, () -> authService.resetPassword(userId, "oldPass", "newPass"), "用户不存在");
+    }
+
+    @Test
+    void testResetPasswordWrongOldPassword() {
+        Long userId = 1L;
+        String wrongOldPassword = "wrongPassword";
+
+        SysUser user = new SysUser();
+        user.setId(userId);
+        user.setUsername("admin");
+        user.setPassword("$2a$10$encodedPassword");
+
+        when(userMapper.selectById(userId)).thenReturn(user);
+        when(passwordEncoder.matches(wrongOldPassword, "$2a$10$encodedPassword")).thenReturn(false);
+
+        assertThrows(BusinessException.class, () -> authService.resetPassword(userId, wrongOldPassword, "newPass"), "旧密码不正确");
+    }
 }

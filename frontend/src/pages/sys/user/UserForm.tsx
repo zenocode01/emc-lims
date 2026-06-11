@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Form, Input, InputNumber, Modal, Select, message } from 'antd'
 import { sysUserApi, type SysUserVO, type SysUserDTO } from '../../../api/sys'
-import { sysDeptApi, type SysDeptVO } from '../../../api/sys'
+import { sysDeptApi, sysRoleApi, type SysDeptVO } from '../../../api/sys'
+import request from '../../../api/request'
 
 interface UserFormProps {
   open: boolean
@@ -25,33 +26,6 @@ export default function UserForm({
   const [allDeptOptions, setAllDeptOptions] = useState<{ label: string; value: number }[]>([])
   const [allRoleOptions, setAllRoleOptions] = useState<{ label: string; value: number }[]>([])
 
-  // 加载部门和角色选项
-  useEffect(() => {
-    if (!open) return
-
-    const loadData = async () => {
-      try {
-        // 获取部门列表（树形）
-        const deptRes = await sysDeptApi.tree()
-        const deptFlat = flattenTree(deptRes)
-        setAllDeptOptions(deptFlat.map((d: SysDeptVO) => ({
-          label: d.name,
-          value: d.id!,
-        })))
-
-        // 获取角色列表
-        const roleRes = await sysRoleApi.all()
-        setAllRoleOptions(roleRes.map((r: any) => ({
-          label: r.roleName,
-          value: r.id,
-        })))
-      } catch {
-        // error handled
-      }
-    }
-    loadData()
-  }, [open])
-
   // 扁平化部门树
   const flattenTree = (nodes: any[], prefix = ''): any[] => {
     let result: any[] = []
@@ -64,13 +38,7 @@ export default function UserForm({
     return result
   }
 
-  // 加载角色 API
-  const sysRoleApi = {
-    all: () => {
-      // 需要重新导入
-    },
-  }
-
+  // 加载部门和角色选项
   useEffect(() => {
     if (!open) return
     const load = async () => {

@@ -27,4 +27,13 @@ public interface AuthService {
      * 刷新 Token
      */
     LoginResponse refreshToken(String token);
+
+    /**
+     * 重置密码（需验证旧密码）
+     *
+     * @param userId       用户ID
+     * @param oldPassword  旧密码
+     * @param newPassword  新密码
+     */
+    void resetPassword(Long userId, String oldPassword, String newPassword);
 }

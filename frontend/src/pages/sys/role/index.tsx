@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Button, Space, Tag, Modal, message, Switch, Card } from 'antd'
-import { PlusOutlined, DeleteOutlined, ExclamationCircleOutlined, AuthOutline } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined, ExclamationCircleOutlined, SafetyOutlined } from '@ant-design/icons'
 import type { ProColumns, ActionType } from '@ant-design/pro-components'
 import { ProTable } from '@ant-design/pro-components'
 import { sysRoleApi, type SysRoleVO } from '../../../api/sys'
@@ -128,7 +128,7 @@ export default function RolePage() {
         <Space>
           <a onClick={() => handleEdit(record)}>编辑</a>
           <a onClick={() => handleAuth(record)}>
-            <AuthOutline /> 授权
+            <SafetyOutlined /> 授权
           </a>
           <a onClick={() => handleDelete([record.id])} style={{ color: '#ff4d4f' }}>
             删除

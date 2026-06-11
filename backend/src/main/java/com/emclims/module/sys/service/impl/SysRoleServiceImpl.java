@@ -6,8 +6,10 @@ import com.emclims.common.exception.BusinessException;
 import com.emclims.module.sys.dto.RoleMenuDTO;
 import com.emclims.module.sys.entity.SysRole;
 import com.emclims.module.sys.entity.SysRoleMenu;
+import com.emclims.module.sys.entity.SysUserRole;
 import com.emclims.module.sys.mapper.SysRoleMapper;
 import com.emclims.module.sys.mapper.SysRoleMenuMapper;
+import com.emclims.module.sys.mapper.SysUserRoleMapper;
 import com.emclims.module.sys.service.SysRoleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,9 +26,11 @@ import java.util.stream.Collectors;
 public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements SysRoleService {
 
     private final SysRoleMenuMapper roleMenuMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
 
-    public SysRoleServiceImpl(SysRoleMenuMapper roleMenuMapper) {
+    public SysRoleServiceImpl(SysRoleMenuMapper roleMenuMapper, SysUserRoleMapper sysUserRoleMapper) {
         this.roleMenuMapper = roleMenuMapper;
+        this.sysUserRoleMapper = sysUserRoleMapper;
     }
 
     @Override
@@ -54,14 +58,36 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     @Override
+    @Transactional
     public void deleteRole(Long id) {
         log.info("删除角色，角色ID: {}", id);
+
+        // 检查是否有用户关联该角色
+        LambdaQueryWrapper<SysUserRole> userRoleWrapper = new LambdaQueryWrapper<>();
+        userRoleWrapper.eq(SysUserRole::getRoleId, id);
+        Long userRoleCount = sysUserRoleMapper.selectCount(userRoleWrapper);
+        if (userRoleCount > 0) {
+            throw new BusinessException("该角色已被用户关联，无法删除");
+        }
+
         this.removeById(id);
     }
 
     @Override
+    @Transactional
     public void deleteRoles(List<Long> ids) {
         log.info("批量删除角色，角色ID列表: {}", ids);
+
+        // 检查是否有任何角色被用户关联
+        for (Long roleId : ids) {
+            LambdaQueryWrapper<SysUserRole> userRoleWrapper = new LambdaQueryWrapper<>();
+            userRoleWrapper.eq(SysUserRole::getRoleId, roleId);
+            Long userRoleCount = sysUserRoleMapper.selectCount(userRoleWrapper);
+            if (userRoleCount > 0) {
+                throw new BusinessException("角色ID " + roleId + " 已被用户关联，无法删除");
+            }
+        }
+
         this.removeByIds(ids);
     }
 

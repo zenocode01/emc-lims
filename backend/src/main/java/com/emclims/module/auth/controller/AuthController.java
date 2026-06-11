@@ -3,6 +3,7 @@ package com.emclims.module.auth.controller;
 import com.emclims.common.response.R;
 import com.emclims.module.sys.dto.LoginRequest;
 import com.emclims.module.sys.dto.LoginResponse;
+import com.emclims.module.sys.dto.ResetPasswordRequest;
 import com.emclims.module.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,5 +47,12 @@ public class AuthController {
     @PostMapping("/refresh")
     public R<LoginResponse> refresh(@RequestParam String token) {
         return R.ok(authService.refreshToken(token));
+    }
+
+    @Operation(summary = "重置密码")
+    @PostMapping("/reset-password")
+    public R<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getUserId(), request.getOldPassword(), request.getNewPassword());
+        return R.ok();
     }
 }

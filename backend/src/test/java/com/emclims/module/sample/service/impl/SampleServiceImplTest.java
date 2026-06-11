@@ -302,4 +302,47 @@ class SampleServiceImplTest {
         assertNotNull(result);
         assertEquals(0, result.size());
     }
+
+    @Test
+    void testGetSampleDetailWithNullCustomer() {
+        Sample sample = new Sample();
+        sample.setId(1L);
+        sample.setSampleNo("SPL-2025-001");
+        sample.setProductName("无客户样品");
+        sample.setStatus("testing");
+        sample.setCustomerId(100L);
+
+        SampleServiceImpl spy = spy(sampleService);
+        doReturn(sample).when(spy).getById(1L);
+        doReturn(null).when(customerMapper).selectById(100L);
+
+        SampleVO vo = spy.getSampleDetail(1L);
+        assertNotNull(vo);
+        assertEquals("无客户样品", vo.getProductName());
+        assertNull(vo.getCustomerName());
+    }
+
+    @Test
+    void testGetSampleDetailWithNullUser() {
+        Sample sample = new Sample();
+        sample.setId(1L);
+        sample.setSampleNo("SPL-2025-001");
+        sample.setProductName("样品");
+        sample.setStatus("testing");
+        sample.setCustomerId(100L);
+        sample.setTesterId(10L);
+
+        Customer customer = new Customer();
+        customer.setName("测试客户");
+
+        SampleServiceImpl spy = spy(sampleService);
+        doReturn(sample).when(spy).getById(1L);
+        doReturn(customer).when(customerMapper).selectById(100L);
+        doReturn(null).when(userMapper).selectById(10L);
+
+        SampleVO vo = spy.getSampleDetail(1L);
+        assertNotNull(vo);
+        assertEquals("测试客户", vo.getCustomerName());
+        assertNull(vo.getTesterName());
+    }
 }

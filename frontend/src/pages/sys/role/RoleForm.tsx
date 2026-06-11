@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Form, Input, InputNumber, Modal, Select, message, TreeSelect } from 'antd'
+import { useCallback, useEffect, useState } from 'react'
+import { Form, Input, InputNumber, Modal, Select, Spin, message } from 'antd'
 import { sysRoleApi, sysMenuApi, type SysRoleVO, type SysMenuVO } from '../../../api/sys'
 
 interface RoleFormProps {
@@ -20,38 +20,44 @@ export default function RoleForm({
   const [menuTree, setMenuTree] = useState<SysMenuVO[]>([])
   const [checkedKeys, setCheckedKeys] = useState<number[]>([])
 
+  const loadData = useCallback(async () => {
+    try {
+      const tree = await sysMenuApi.tree()
+      setMenuTree(tree)
+      if (data) {
+        const menuIds = await sysRoleApi.getMenuIds(data.id!)
+        setCheckedKeys(menuIds)
+        form.setFieldsValue({
+          roleName: data.roleName,
+          roleCode: data.roleCode,
+          roleDesc: data.roleDesc,
+          dataScope: data.dataScope,
+          sort: data.sort,
+          status: data.status,
+        })
+      } else {
+        form.resetFields()
+        form.setFieldsValue({
+          status: 1,
+          sort: 0,
+          dataScope: 2,
+        })
+      }
+    } catch {
+      // error handled
+    }
+  }, [data, form])
+
   useEffect(() => {
     if (!open) return
-    const load = async () => {
-      try {
-        const tree = await sysMenuApi.tree()
-        setMenuTree(tree)
-        if (data) {
-          // 获取角色已授权的菜单ID
-          const menuIds = await sysRoleApi.getMenuIds(data.id!)
-          setCheckedKeys(menuIds)
-          form.setFieldsValue({
-            roleName: data.roleName,
-            roleCode: data.roleCode,
-            roleDesc: data.roleDesc,
-            dataScope: data.dataScope,
-            sort: data.sort,
-            status: data.status,
-          })
-        } else {
-          form.resetFields()
-          form.setFieldsValue({
-            status: 1,
-            sort: 0,
-            dataScope: 2,
-          })
-        }
-      } catch {
-        // error handled
-      }
-    }
-    load()
-  }, [open, data, form])
+    loadData()
+  }, [open, data, loadData])
+
+  const handleCancel = () => {
+    form.resetFields()
+    setCheckedKeys([])
+    onCancel()
+  }
 
   const handleSubmit = async () => {
     const values = await form.validateFields()
@@ -81,11 +87,12 @@ export default function RoleForm({
       title={data ? '编辑角色' : '新增角色'}
       open={open}
       onOk={handleSubmit}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       confirmLoading={loading}
       width={600}
     >
-      <Form form={form} layout="vertical">
+      <Spin spinning={loading}>
+        <Form form={form} layout="vertical">
         <Form.Item
           name="roleName"
           label="角色名称"
@@ -129,6 +136,7 @@ export default function RoleForm({
           </Select>
         </Form.Item>
       </Form>
+      </Spin>
     </Modal>
   )
 }

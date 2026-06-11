@@ -179,22 +179,37 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
     }
 
     /**
+     * 从 Map 中安全获取客户名称
+     */
+    private String getCustomerName(Sample sample, java.util.Map<Long, Customer> customerMap) {
+        if (sample.getCustomerId() == null || customerMap == null) {
+            return null;
+        }
+        Customer customer = customerMap.get(sample.getCustomerId());
+        return customer != null ? customer.getName() : null;
+    }
+
+    /**
+     * 从 Map 中安全获取用户昵称
+     */
+    private String getUserNickname(Sample sample, Long userId, java.util.Map<Long, SysUser> userMap) {
+        if (userId == null || userMap == null) {
+            return null;
+        }
+        SysUser user = userMap.get(userId);
+        return user != null ? user.getNickname() : null;
+    }
+
+    /**
      * 转换为 VO（批量查询版）
      */
     private SampleVO convertToVO(Sample sample, java.util.Map<Long, Customer> customerMap, java.util.Map<Long, SysUser> userMap) {
         SampleVO vo = new SampleVO();
         BeanUtils.copyProperties(sample, vo);
         vo.setStatusName(SampleStatusEnum.fromValue(sample.getStatus()).getLabel());
-
-        if (sample.getCustomerId() != null && customerMap.containsKey(sample.getCustomerId())) {
-            vo.setCustomerName(customerMap.get(sample.getCustomerId()).getName());
-        }
-        if (sample.getTesterId() != null && userMap.containsKey(sample.getTesterId())) {
-            vo.setTesterName(userMap.get(sample.getTesterId()).getNickname());
-        }
-        if (sample.getReceiveBy() != null && userMap.containsKey(sample.getReceiveBy())) {
-            vo.setReceiveByName(userMap.get(sample.getReceiveBy()).getNickname());
-        }
+        vo.setCustomerName(getCustomerName(sample, customerMap));
+        vo.setTesterName(getUserNickname(sample, sample.getTesterId(), userMap));
+        vo.setReceiveByName(getUserNickname(sample, sample.getReceiveBy(), userMap));
         return vo;
     }
 
@@ -205,24 +220,17 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
         SampleVO vo = new SampleVO();
         BeanUtils.copyProperties(sample, vo);
         vo.setStatusName(SampleStatusEnum.fromValue(sample.getStatus()).getLabel());
-
         if (sample.getCustomerId() != null) {
             Customer customer = customerMapper.selectById(sample.getCustomerId());
-            if (customer != null) {
-                vo.setCustomerName(customer.getName());
-            }
+            vo.setCustomerName(customer != null ? customer.getName() : null);
         }
         if (sample.getTesterId() != null) {
             SysUser user = userMapper.selectById(sample.getTesterId());
-            if (user != null) {
-                vo.setTesterName(user.getNickname());
-            }
+            vo.setTesterName(user != null ? user.getNickname() : null);
         }
         if (sample.getReceiveBy() != null) {
             SysUser user = userMapper.selectById(sample.getReceiveBy());
-            if (user != null) {
-                vo.setReceiveByName(user.getNickname());
-            }
+            vo.setReceiveByName(user != null ? user.getNickname() : null);
         }
         return vo;
     }

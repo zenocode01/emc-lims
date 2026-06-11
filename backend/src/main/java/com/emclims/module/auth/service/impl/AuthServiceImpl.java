@@ -37,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest request) {
         // 查询用户
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysUser::getPhone, request.getPhone());
+        wrapper.eq(SysUser::getUsername, request.getUsername());
         SysUser user = userMapper.selectOne(wrapper);
 
         if (user == null) {
@@ -58,13 +58,13 @@ public class AuthServiceImpl implements AuthService {
         List<String> permissions = menuMapper.selectPermissionsByUserId(user.getId());
 
         // 生成 Token
-        String token = jwtUtils.generateToken(user.getId(), user.getPhone());
+        String token = jwtUtils.generateToken(user.getId(), user.getUsername());
 
         // 构建响应
         LoginResponse response = new LoginResponse();
         response.setToken(token);
         response.setUserId(user.getId());
-        response.setPhone(user.getPhone());
+        response.setUsername(user.getUsername());
         response.setNickname(user.getNickname());
         response.setAvatar(user.getAvatar());
         response.setPermissions(permissions);
@@ -93,7 +93,7 @@ public class AuthServiceImpl implements AuthService {
 
         LoginResponse response = new LoginResponse();
         response.setUserId(user.getId());
-        response.setPhone(user.getPhone());
+        response.setUsername(user.getUsername());
         response.setNickname(user.getNickname());
         response.setAvatar(user.getAvatar());
         response.setPermissions(permissions);
@@ -116,12 +116,12 @@ public class AuthServiceImpl implements AuthService {
         }
 
         List<String> permissions = menuMapper.selectPermissionsByUserId(userId);
-        String newToken = jwtUtils.generateToken(userId, user.getPhone());
+        String newToken = jwtUtils.generateToken(userId, user.getUsername());
 
         LoginResponse response = new LoginResponse();
         response.setToken(newToken);
         response.setUserId(user.getId());
-        response.setPhone(user.getPhone());
+        response.setUsername(user.getUsername());
         response.setNickname(user.getNickname());
         response.setAvatar(user.getAvatar());
         response.setPermissions(permissions);
@@ -130,8 +130,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private Long getCurrentUserId() {
-        // TODO: 从 SecurityContext 获取当前用户ID
-        // 这里简化处理，从请求头或参数获取
-        return 1L;
+        return com.emclims.common.security.SecurityUtils.getCurrentUserId();
     }
 }

@@ -152,11 +152,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     private boolean isPermitted(MenuTreeNode menu, List<String> permissions) {
         // 目录和菜单类型：只要有子菜单可见即可
-        if ("1".equals(menu.getMenuType()) || "2".equals(menu.getMenuType())) {
+        if (Integer.valueOf(1).equals(menu.getMenuType()) || Integer.valueOf(2).equals(menu.getMenuType())) {
             return true;
         }
         // 按钮类型：需要有对应权限标识
-        if ("3".equals(menu.getMenuType())) {
+        if (Integer.valueOf(3).equals(menu.getMenuType())) {
             if (menu.getPermission() != null && !menu.getPermission().isEmpty()) {
                 return permissions.contains(menu.getPermission());
             }

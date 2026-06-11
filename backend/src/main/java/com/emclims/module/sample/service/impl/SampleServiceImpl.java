@@ -187,8 +187,8 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
         log.setToStatus(toStatus);
         log.setOperateTime(LocalDateTime.now());
         log.setRemark(remark);
-        // TODO: 从安全上下文获取当前用户
-        log.setOperator(1L);
+        // 从安全上下文获取当前用户
+        log.setOperator(com.emclims.common.security.SecurityUtils.getCurrentUserId());
         sampleLogMapper.insert(log);
     }
 }

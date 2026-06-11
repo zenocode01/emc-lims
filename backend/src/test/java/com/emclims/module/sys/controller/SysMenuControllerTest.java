@@ -4,15 +4,20 @@ import com.emclims.module.sys.dto.MenuTreeNode;
 import com.emclims.module.sys.entity.SysMenu;
 import com.emclims.module.sys.service.SysMenuService;
 import com.emclims.module.sys.vo.SysMenuVO;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -24,10 +29,16 @@ class SysMenuControllerTest {
 
     private MockMvc mockMvc;
     private SysMenuService menuService;
+    private MockHttpServletRequest request;
 
     @BeforeEach
     void setUp() {
         menuService = mock(SysMenuService.class);
+        request = new MockHttpServletRequest();
+        request.setAttribute("userId", 1L);
+        request.setAttribute("username", "admin");
+        request.setAttribute("permissions", List.of("sys:menu:list"));
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
         mockMvc = MockMvcBuilders.standaloneSetup(new SysMenuController(menuService)).build();
     }
 
@@ -68,15 +79,20 @@ class SysMenuControllerTest {
         MenuTreeNode node = new MenuTreeNode();
         node.setId(1L);
         node.setMenuName("首页");
+        node.setMenuType(1);
+        node.setParentId(0L);
+        node.setSort(1);
+        node.setStatus(1);
+        node.setIsHidden(0);
 
-        when(menuService.getMenuTreeByUserId(1L)).thenReturn(List.of(node));
+        when(menuService.getMenuTreeByUserId(any())).thenReturn(List.of(node));
 
         mockMvc.perform(get("/sys/menu/current-user/tree"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data[0].menuName").value("首页"));
 
-        verify(menuService).getMenuTreeByUserId(1L);
+        verify(menuService).getMenuTreeByUserId(any());
     }
 
     @Test

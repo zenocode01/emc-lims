@@ -35,12 +35,12 @@ class AuthControllerTest {
         LoginResponse response = new LoginResponse();
         response.setToken("test-token");
         response.setNickname("管理员");
-        response.setPhone("13800138000");
+        response.setUsername("admin");
         when(authService.login(any(LoginRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"phone\":\"13800138000\",\"password\":\"password123\"}"))
+                        .content("{\"username\":\"admin\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.token").value("test-token"));
@@ -62,7 +62,7 @@ class AuthControllerTest {
     @Test
     void testInfo() throws Exception {
         LoginResponse response = new LoginResponse();
-        response.setPhone("13800138000");
+        response.setUsername("admin");
         response.setNickname("管理员");
         response.setPermissions(List.of("user:read", "user:write"));
         when(authService.getCurrentUserInfo()).thenReturn(response);
@@ -70,7 +70,7 @@ class AuthControllerTest {
         mockMvc.perform(get("/auth/info"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.phone").value("13800138000"));
+                .andExpect(jsonPath("$.data.username").value("admin"));
 
         verify(authService).getCurrentUserInfo();
     }

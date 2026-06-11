@@ -14,7 +14,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const res = await login(values.username, values.password)
-      localStorage.setItem('token', res.data.token)
+      localStorage.setItem('token', res.token)
       message.success('登录成功')
       navigate('/', { replace: true })
     } catch {

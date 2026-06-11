@@ -14,7 +14,7 @@ public class SysMenuVO {
 
     private String menuName;
 
-    private String menuType;
+    private Integer menuType;
 
     private String path;
 

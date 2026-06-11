@@ -16,8 +16,8 @@ public class LoginResponse {
     /** 用户ID */
     private Long userId;
 
-    /** 手机号 */
-    private String phone;
+    /** 用户名 */
+    private String username;
 
     /** 昵称 */
     private String nickname;

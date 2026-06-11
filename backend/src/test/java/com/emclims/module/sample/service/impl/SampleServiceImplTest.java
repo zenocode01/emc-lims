@@ -17,10 +17,15 @@ import com.emclims.module.sample.vo.SampleLogVO;
 import com.emclims.module.sample.vo.SampleVO;
 import com.emclims.module.sys.entity.SysUser;
 import com.emclims.module.sys.mapper.SysUserMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -52,6 +57,13 @@ class SampleServiceImplTest {
     @org.junit.jupiter.api.BeforeEach
     void setUp() {
         sampleService = new SampleServiceImpl(customerMapper, userMapper, sampleLogMapper);
+        
+        // 设置 mock 的 RequestContextHolder 以便 SecurityUtils 可以获取 userId
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setAttribute("userId", 1L);
+        request.setAttribute("username", "admin");
+        request.setAttribute("permissions", java.util.List.of("sample:list"));
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     }
 
     // === pageSamples 测试 ===

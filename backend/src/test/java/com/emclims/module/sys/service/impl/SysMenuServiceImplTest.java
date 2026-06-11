@@ -44,7 +44,7 @@ class SysMenuServiceImplTest {
         baseMapperField.set(menuService, menuMapper);
     }
 
-    private SysMenu createMenu(Long id, String name, String type, Long parentId, Integer sort, String permission) {
+    private SysMenu createMenu(Long id, String name, Integer type, Long parentId, Integer sort, String permission) {
         SysMenu menu = new SysMenu();
         menu.setId(id);
         menu.setMenuName(name);
@@ -57,9 +57,9 @@ class SysMenuServiceImplTest {
 
     @Test
     void testGetMenuTree() {
-        SysMenu menu1 = createMenu(1L, "系统管理", "1", 0L, 1, null);
-        SysMenu menu2 = createMenu(2L, "用户管理", "2", 1L, 1, null);
-        SysMenu menu3 = createMenu(3L, "新增用户", "3", 2L, 1, "sys:user:add");
+        SysMenu menu1 = createMenu(1L, "系统管理", 1, 0L, 1, null);
+        SysMenu menu2 = createMenu(2L, "用户管理", 2, 1L, 1, null);
+        SysMenu menu3 = createMenu(3L, "新增用户", 3, 2L, 1, "sys:user:add");
 
         SysMenuServiceImpl spy = spy(menuService);
         List<SysMenu> allMenus = List.of(menu1, menu2, menu3);
@@ -74,7 +74,7 @@ class SysMenuServiceImplTest {
 
     @Test
     void testCreateMenu() {
-        SysMenu menu = createMenu(null, "新菜单", "2", 0L, 1, null);
+        SysMenu menu = createMenu(null, "新菜单", 2, 0L, 1, null);
 
         SysMenuServiceImpl spy = spy(menuService);
         doReturn(true).when(spy).save(any(SysMenu.class));
@@ -87,7 +87,7 @@ class SysMenuServiceImplTest {
     void testCreateMenuWithNullParent() {
         SysMenu menu = new SysMenu();
         menu.setMenuName("顶级菜单");
-        menu.setMenuType("1");
+        menu.setMenuType(1);
 
         SysMenuServiceImpl spy = spy(menuService);
         doReturn(true).when(spy).save(any(SysMenu.class));
@@ -98,7 +98,7 @@ class SysMenuServiceImplTest {
 
     @Test
     void testUpdateMenu() {
-        SysMenu menu = createMenu(1L, "更新名称", "2", 0L, 1, null);
+        SysMenu menu = createMenu(1L, "更新名称", 2, 0L, 1, null);
 
         SysMenuServiceImpl spy = spy(menuService);
         doReturn(true).when(spy).updateById(any(SysMenu.class));
@@ -128,8 +128,8 @@ class SysMenuServiceImplTest {
 
     @Test
     void testGetMenuTreeByRoleId() {
-        SysMenu menu1 = createMenu(1L, "用户管理", "2", 0L, 1, "sys:user:list");
-        SysMenu menu2 = createMenu(2L, "角色管理", "2", 0L, 2, "sys:role:list");
+        SysMenu menu1 = createMenu(1L, "用户管理", 2, 0L, 1, "sys:user:list");
+        SysMenu menu2 = createMenu(2L, "角色管理", 2, 0L, 2, "sys:role:list");
 
         SysRoleMenu rm = new SysRoleMenu();
         rm.setRoleId(1L);
@@ -146,8 +146,8 @@ class SysMenuServiceImplTest {
 
     @Test
     void testGetMenuTreeByUserId() {
-        SysMenu menu1 = createMenu(1L, "用户管理", "2", 0L, 1, "sys:user:list");
-        SysMenu menu2 = createMenu(2L, "用户新增", "3", 1L, 1, "sys:user:add");
+        SysMenu menu1 = createMenu(1L, "用户管理", 2, 0L, 1, "sys:user:list");
+        SysMenu menu2 = createMenu(2L, "用户新增", 3, 1L, 1, "sys:user:add");
 
         SysMenuServiceImpl spy = spy(menuService);
         doReturn(List.of(menu1, menu2)).when(spy).list(any(LambdaQueryWrapper.class));

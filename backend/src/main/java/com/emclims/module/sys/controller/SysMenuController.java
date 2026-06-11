@@ -74,7 +74,6 @@ public class SysMenuController {
     }
 
     private Long getCurrentUserId() {
-        // TODO: 从 SecurityContext 获取
-        return 1L;
+        return com.emclims.common.security.SecurityUtils.getCurrentUserId();
     }
 }

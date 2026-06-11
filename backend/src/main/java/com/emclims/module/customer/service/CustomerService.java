@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.emclims.module.customer.dto.CustomerDTO;
 import com.emclims.module.customer.dto.CustomerQueryDTO;
 import com.emclims.module.customer.entity.Customer;
+import com.emclims.module.customer.vo.CustomerExportVO;
 import com.emclims.module.customer.vo.CustomerVO;
 
 import java.util.List;
@@ -43,4 +44,9 @@ public interface CustomerService extends IService<Customer> {
      * 修改客户状态
      */
     void updateStatus(Long id, Integer status);
+
+    /**
+     * 导出客户列表（根据查询条件）
+     */
+    List<CustomerExportVO> exportCustomers(CustomerQueryDTO queryDTO);
 }

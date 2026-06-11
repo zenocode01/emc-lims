@@ -10,6 +10,7 @@ import com.emclims.module.customer.dto.CustomerQueryDTO;
 import com.emclims.module.customer.entity.Customer;
 import com.emclims.module.customer.mapper.CustomerMapper;
 import com.emclims.module.customer.service.CustomerService;
+import com.emclims.module.customer.vo.CustomerExportVO;
 import com.emclims.module.customer.vo.CustomerVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -108,5 +109,26 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
         }
         customer.setStatus(status);
         this.updateById(customer);
+    }
+
+    @Override
+    public List<CustomerExportVO> exportCustomers(CustomerQueryDTO queryDTO) {
+        LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(StrUtil.isNotBlank(queryDTO.getKeyword()), Customer::getName, queryDTO.getKeyword())
+               .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), Customer::getContact, queryDTO.getKeyword())
+               .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), Customer::getPhone, queryDTO.getKeyword())
+               .eq(queryDTO.getType() != null, Customer::getType, queryDTO.getType())
+               .eq(StrUtil.isNotBlank(queryDTO.getIndustry()), Customer::getIndustry, queryDTO.getIndustry())
+               .eq(queryDTO.getStatus() != null, Customer::getStatus, queryDTO.getStatus())
+               .orderByDesc(Customer::getCreateTime);
+
+        List<Customer> customers = this.list(wrapper);
+        return customers.stream().map(customer -> {
+            CustomerExportVO vo = new CustomerExportVO();
+            BeanUtils.copyProperties(customer, vo);
+            vo.setTypeName(customer.getType() != null && customer.getType() == 1 ? "企业" : "个人");
+            vo.setStatusName(customer.getStatus() != null && customer.getStatus() == 1 ? "启用" : "禁用");
+            return vo;
+        }).collect(Collectors.toList());
     }
 }

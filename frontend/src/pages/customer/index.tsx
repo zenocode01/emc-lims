@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react'
 import { Button, Space, Tag, Modal, message, Switch, Card } from 'antd'
-import { PlusOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined, DownloadOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
 import type { ProColumns, ActionType } from '@ant-design/pro-components'
 import { ProTable } from '@ant-design/pro-components'
 import { customerApi, type CustomerVO, type CustomerQuery } from '../../api/customer'
+import { downloadBlob } from '../../utils/download'
 import CustomerForm from './CustomerForm'
 
 /**
@@ -175,6 +176,13 @@ export default function CustomerPage() {
           actions: [
             <Button key="add" type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
               新增客户
+            </Button>,
+            <Button
+              key="export"
+              icon={<DownloadOutlined />}
+              onClick={() => window.open('/api/customer/export', '_blank')}
+            >
+              导出Excel
             </Button>,
             <Button
               key="delete"

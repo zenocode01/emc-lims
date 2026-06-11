@@ -1,9 +1,6 @@
 package com.emclims.common.config;
 
-import com.emclims.common.security.JwtAuthenticationFilter;
 import com.emclims.common.security.PermissionInterceptor;
-import jakarta.servlet.Filter;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -14,12 +11,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class PermissionConfig implements WebMvcConfigurer {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final PermissionInterceptor permissionInterceptor;
 
-    public PermissionConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-                           PermissionInterceptor permissionInterceptor) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    public PermissionConfig(PermissionInterceptor permissionInterceptor) {
         this.permissionInterceptor = permissionInterceptor;
     }
 

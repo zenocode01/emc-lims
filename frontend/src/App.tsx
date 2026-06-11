@@ -4,6 +4,8 @@ import { ConfigProvider, Layout, Menu, theme } from 'antd'
 import { TeamOutlined, HomeOutlined } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 import CustomerPage from './pages/customer'
+import LoginPage from './pages/login'
+import DashboardPage from './pages/dashboard'
 
 const { Header, Sider, Content } = Layout
 
@@ -152,53 +154,6 @@ function App() {
   )
 }
 
-// 登录页（占位）
-function LoginPage() {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      }}
-    >
-      <div
-        style={{
-          background: 'white',
-          padding: '40px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-          width: 400,
-        }}
-      >
-        <h1 style={{ textAlign: 'center', marginBottom: 30 }}>EMC LIMS</h1>
-        <p style={{ textAlign: 'center', color: '#666' }}>电磁兼容实验室信息管理系统</p>
-        <div
-          style={{
-            textAlign: 'center',
-            marginTop: 20,
-            padding: 40,
-            background: '#f5f5f5',
-            borderRadius: 4,
-          }}
-        >
-          登录页面开发中...
-        </div>
-      </div>
-    </div>
-  )
-}
 
-// 首页
-function DashboardPage() {
-  return (
-    <div>
-      <h2>欢迎使用 EMC LIMS</h2>
-      <p style={{ color: '#666' }}>电磁兼容实验室信息管理系统</p>
-    </div>
-  )
-}
 
 export default App

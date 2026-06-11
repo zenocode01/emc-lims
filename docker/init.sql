@@ -42,6 +42,7 @@ CREATE TABLE sys_dept (
     parent_id   BIGINT DEFAULT 0,
     name        VARCHAR(100) NOT NULL,
     code        VARCHAR(50) NOT NULL,
+    dept_type   INT DEFAULT 1,
     sort        INT DEFAULT 0,
     status      SMALLINT DEFAULT 1,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -57,9 +58,9 @@ COMMENT ON TABLE sys_dept IS '部门表';
 -- 角色表
 CREATE TABLE sys_role (
     id          BIGINT PRIMARY KEY,
-    name        VARCHAR(50) NOT NULL,
-    code        VARCHAR(50) NOT NULL UNIQUE,
-    type        SMALLINT DEFAULT 2,
+    role_name   VARCHAR(50) NOT NULL,
+    role_code   VARCHAR(50) NOT NULL UNIQUE,
+    role_desc   VARCHAR(200),
     status      SMALLINT DEFAULT 1,
     data_scope  SMALLINT DEFAULT 2,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -71,23 +72,24 @@ CREATE TABLE sys_role (
 );
 
 COMMENT ON TABLE sys_role IS '角色表';
-COMMENT ON COLUMN sys_role.type IS '类型：1-超级管理员，2-普通角色';
+COMMENT ON COLUMN sys_role.role_desc IS '角色描述';
 COMMENT ON COLUMN sys_role.data_scope IS '数据范围：1-全部，2-本部门，3-本部门及子部门，4-仅本人';
 
 -- 菜单/权限表
 CREATE TABLE sys_menu (
     id          BIGINT PRIMARY KEY,
     parent_id   BIGINT DEFAULT 0,
-    name        VARCHAR(50) NOT NULL,
-    type        SMALLINT NOT NULL,
+    menu_name   VARCHAR(50) NOT NULL,
+    menu_type   SMALLINT NOT NULL,
     path        VARCHAR(200),
     component   VARCHAR(200),
     permission  VARCHAR(100),
     icon        VARCHAR(50),
     sort        INT DEFAULT 0,
     status      SMALLINT DEFAULT 1,
-    visible     SMALLINT DEFAULT 1,
-    keep_alive  SMALLINT DEFAULT 0,
+    is_hidden   SMALLINT DEFAULT 0,
+    redirect    VARCHAR(200),
+    dept_id     BIGINT,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     create_by   BIGINT,
@@ -97,9 +99,8 @@ CREATE TABLE sys_menu (
 );
 
 COMMENT ON TABLE sys_menu IS '菜单/权限表';
-COMMENT ON COLUMN sys_menu.type IS '类型：1-目录，2-菜单，3-按钮';
-COMMENT ON COLUMN sys_menu.visible IS '是否可见：0-隐藏，1-显示';
-COMMENT ON COLUMN sys_menu.keep_alive IS '是否缓存：0-否，1-是';
+COMMENT ON COLUMN sys_menu.menu_type IS '类型：1-目录，2-菜单，3-按钮';
+COMMENT ON COLUMN sys_menu.is_hidden IS '是否隐藏：0-显示，1-隐藏';
 
 -- 用户角色关联表
 CREATE TABLE sys_user_role (
@@ -525,11 +526,11 @@ INSERT INTO sys_user (id, username, password, name, gender, status) VALUES
 (1, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '系统管理员', 1, 1);
 
 -- 插入默认角色
-INSERT INTO sys_role (id, name, code, type) VALUES
-(1, '超级管理员', 'admin', 1),
-(2, '检测员', 'tester', 2),
-(3, '审核员', 'reviewer', 2),
-(4, '报告签发人', 'approver', 2);
+INSERT INTO sys_role (id, role_name, role_code, role_desc) VALUES
+(1, '超级管理员', 'admin', '超级管理员'),
+(2, '检测员', 'tester', '检测员'),
+(3, '审核员', 'reviewer', '审核员'),
+(4, '报告签发人', 'approver', '报告签发人');
 
 -- 插入用户角色关联
 INSERT INTO sys_user_role (id, user_id, role_id) VALUES

@@ -9,6 +9,7 @@ import com.emclims.module.sys.service.SysDeptService;
 import com.emclims.module.sys.vo.SysDeptVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,6 +23,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> implements SysDeptService {
+
+    @Autowired
+    public SysDeptServiceImpl(SysDeptMapper deptMapper) {
+        this.baseMapper = deptMapper;
+    }
+
 
     @Override
     public List<SysDeptVO> getDeptTree() {

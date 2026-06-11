@@ -12,6 +12,7 @@ import com.emclims.module.sys.service.SysMenuService;
 import com.emclims.module.sys.vo.SysMenuVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -28,8 +29,14 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     private final SysRoleMenuMapper roleMenuMapper;
 
+    @Autowired
     public SysMenuServiceImpl(SysRoleMenuMapper roleMenuMapper) {
         this.roleMenuMapper = roleMenuMapper;
+    }
+
+    public SysMenuServiceImpl(SysMenuMapper mapper, SysRoleMenuMapper roleMenuMapper) {
+        this.roleMenuMapper = roleMenuMapper;
+        this.baseMapper = mapper;
     }
 
     @Override

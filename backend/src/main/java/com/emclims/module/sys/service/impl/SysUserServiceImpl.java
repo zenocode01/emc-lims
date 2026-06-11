@@ -70,36 +70,25 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         Page<SysUser> userPage = this.page(page, wrapper);
 
-        // 批量查询部门和角色，避免 N+1
-        List<Long> deptIds = userPage.getRecords().stream().map(SysUser::getDeptId).filter(id -> id != null).distinct().collect(Collectors.toList());
-        java.util.List<Long> userIds = userPage.getRecords().stream().map(SysUser::getId).collect(Collectors.toList());
-
+        // 批量查询部门
+        List<Long> deptIds = userPage.getRecords().stream()
+                .map(SysUser::getDeptId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
         java.util.Map<Long, SysDept> deptMap = deptIds.isEmpty() ? java.util.Collections.emptyMap() :
-                deptMapper.selectBatchIds(deptIds).stream().collect(Collectors.toMap(SysDept::getId, d -> d));
+                deptMapper.selectBatchIds(deptIds).stream()
+                        .collect(Collectors.toMap(SysDept::getId, d -> d));
 
-        java.util.Map<Long, SysRole> defaultRoleMap = new java.util.HashMap<>();
-        for (Long userId : userIds) {
-            List<Long> roleIds = userRoleMapper.selectRoleIdsByUserId(userId);
-            if (roleIds != null && !roleIds.isEmpty()) {
-                SysRole role = roleMapper.selectById(roleIds.get(0));
-                if (role != null) {
-                    defaultRoleMap.put(userId, role);
-                }
-            }
-        }
+        // 批量查询用户默认角色
+        java.util.Map<Long, SysRole> defaultRoleMap = buildDefaultRoleMap(userPage.getRecords());
 
         // 填充部门名和角色列表
         List<SysUserVO> voList = userPage.getRecords().stream().map(user -> {
             SysUserVO vo = new SysUserVO();
             BeanUtils.copyProperties(user, vo);
-            if (user.getDeptId() != null && deptMap.containsKey(user.getDeptId())) {
-                vo.setDeptName(deptMap.get(user.getDeptId()).getDeptName());
-            }
-            if (defaultRoleMap.containsKey(user.getId())) {
-                SysRole role = defaultRoleMap.get(user.getId());
-                vo.setRoleName(role.getRoleName());
-                vo.setRoleCode(role.getRoleCode());
-            }
+            populateDeptName(vo, user.getDeptId(), deptMap);
+            populateDefaultRole(vo, user.getId(), defaultRoleMap);
             return vo;
         }).collect(Collectors.toList());
 
@@ -246,5 +235,42 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 })
                 .collect(Collectors.toList());
         userRoleMapper.batchInsert(userRoles);
+    }
+
+    /**
+     * 构建用户默认角色映射
+     */
+    private java.util.Map<Long, SysRole> buildDefaultRoleMap(List<SysUser> users) {
+        java.util.Map<Long, SysRole> defaultRoleMap = new java.util.HashMap<>();
+        for (SysUser user : users) {
+            List<Long> roleIds = userRoleMapper.selectRoleIdsByUserId(user.getId());
+            if (roleIds != null && !roleIds.isEmpty()) {
+                SysRole role = roleMapper.selectById(roleIds.get(0));
+                if (role != null) {
+                    defaultRoleMap.put(user.getId(), role);
+                }
+            }
+        }
+        return defaultRoleMap;
+    }
+
+    /**
+     * 填充部门名称
+     */
+    private void populateDeptName(SysUserVO vo, Long deptId, java.util.Map<Long, SysDept> deptMap) {
+        if (deptId != null && deptMap.containsKey(deptId)) {
+            vo.setDeptName(deptMap.get(deptId).getDeptName());
+        }
+    }
+
+    /**
+     * 填充默认角色信息
+     */
+    private void populateDefaultRole(SysUserVO vo, Long userId, java.util.Map<Long, SysRole> defaultRoleMap) {
+        SysRole role = defaultRoleMap.get(userId);
+        if (role != null) {
+            vo.setRoleName(role.getRoleName());
+            vo.setRoleCode(role.getRoleCode());
+        }
     }
 }

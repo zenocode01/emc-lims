@@ -1,11 +1,7 @@
 package com.emclims.common.security;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.emclims.module.sys.entity.SysDept;
 import com.emclims.module.sys.entity.SysRole;
 import com.emclims.module.sys.entity.SysUser;
-import com.emclims.module.sys.entity.SysUserRole;
-import com.emclims.module.sys.mapper.SysDeptMapper;
 import com.emclims.module.sys.mapper.SysRoleMapper;
 import com.emclims.module.sys.mapper.SysUserMapper;
 import com.emclims.module.sys.mapper.SysUserRoleMapper;
@@ -21,14 +17,12 @@ public class DataPermissionLoader {
 
     private final SysUserMapper userMapper;
     private final SysRoleMapper roleMapper;
-    private final SysDeptMapper deptMapper;
     private final SysUserRoleMapper userRoleMapper;
 
-    public DataPermissionLoader(SysUserMapper userMapper, SysRoleMapper roleMapper, 
-                                SysDeptMapper deptMapper, SysUserRoleMapper userRoleMapper) {
+    public DataPermissionLoader(SysUserMapper userMapper, SysRoleMapper roleMapper,
+                                SysUserRoleMapper userRoleMapper) {
         this.userMapper = userMapper;
         this.roleMapper = roleMapper;
-        this.deptMapper = deptMapper;
         this.userRoleMapper = userRoleMapper;
     }
 
@@ -40,34 +34,41 @@ public class DataPermissionLoader {
             return;
         }
 
-        // 查询用户信息
         SysUser user = userMapper.selectById(userId);
         if (user == null) {
             return;
         }
 
-        // 设置用户ID和部门ID
         DataPermissionContext.setUserId(userId);
         DataPermissionContext.setDeptId(user.getDeptId());
 
-        // 查询用户所有角色，获取最大的 dataScope（1-全部 > 2-本部门 > 3-本部门及子部门 > 4-仅本人）
+        loadUserRolePermission(userId);
+    }
+
+    /**
+     * 加载用户角色权限，取最小 dataScope（权限最大）
+     */
+    private void loadUserRolePermission(Long userId) {
         List<Long> roleIds = userRoleMapper.selectRoleIdsByUserId(userId);
-        if (roleIds != null && !roleIds.isEmpty()) {
-            // 批量查询角色，避免 N+1 查询
-            List<SysRole> roles = roleMapper.selectBatchIds(roleIds);
-            Integer maxDataScope = null;
-            for (SysRole role : roles) {
-                if (role != null && role.getDataScope() != null) {
-                    // dataScope 越小权限越大，取最小值
-                    if (maxDataScope == null || role.getDataScope() < maxDataScope) {
-                        maxDataScope = role.getDataScope();
-                    }
-                }
-            }
-            if (maxDataScope != null) {
-                DataPermissionContext.setDataScope(maxDataScope);
-            }
+        if (roleIds == null || roleIds.isEmpty()) {
+            return;
         }
+
+        Integer minDataScope = findMinDataScope(roleIds);
+        if (minDataScope != null) {
+            DataPermissionContext.setDataScope(minDataScope);
+        }
+    }
+
+    /**
+     * 查找最小 dataScope（1-全部 2-本部门 3-本部门及子部门 4-仅本人）
+     */
+    private Integer findMinDataScope(List<Long> roleIds) {
+        return roleMapper.selectBatchIds(roleIds).stream()
+                .filter(r -> r != null && r.getDataScope() != null)
+                .mapToInt(SysRole::getDataScope)
+                .min()
+                .orElse(Integer.MAX_VALUE);
     }
 
     /**

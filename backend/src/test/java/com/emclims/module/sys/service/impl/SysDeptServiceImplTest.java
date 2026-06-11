@@ -3,9 +3,12 @@ package com.emclims.module.sys.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.emclims.common.exception.BusinessException;
 import com.emclims.module.sys.entity.SysDept;
+import com.emclims.module.sys.mapper.SysDeptMapper;
 import com.emclims.module.sys.vo.SysDeptVO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -20,24 +23,20 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class SysDeptServiceImplTest {
 
+    @Mock
+    private SysDeptMapper deptMapper;
+
+    @InjectMocks
+    private SysDeptServiceImpl service;
+
+
     @Test
     void testGetDeptTree() {
-        SysDept dept1 = new SysDept();
-        dept1.setId(1L);
-        dept1.setDeptName("总公司");
-        dept1.setParentId(0L);
-        dept1.setSort(1);
+        SysDept dept1 = createDept(1L, "总公司", 0L);
+        SysDept dept2 = createDept(2L, "技术部", 1L);
+        when(deptMapper.selectList(any())).thenReturn(List.of(dept1, dept2));
 
-        SysDept dept2 = new SysDept();
-        dept2.setId(2L);
-        dept2.setDeptName("技术部");
-        dept2.setParentId(1L);
-        dept2.setSort(1);
-
-        SysDeptServiceImpl spy = spy(new SysDeptServiceImpl());
-        doReturn(List.of(dept1, dept2)).when(spy).list();
-
-        List<SysDeptVO> tree = spy.getDeptTree();
+        List<SysDeptVO> tree = service.getDeptTree();
         assertEquals(1, tree.size());
         assertEquals("总公司", tree.get(0).getDeptName());
         assertEquals(1, tree.get(0).getChildren().size());
@@ -46,49 +45,30 @@ class SysDeptServiceImplTest {
 
     @Test
     void testGetDeptDetail() {
-        SysDept dept = new SysDept();
-        dept.setId(1L);
-        dept.setDeptName("技术部");
-        dept.setParentId(0L);
+        SysDept dept = createDept(1L, "技术部", 0L);
+        when(deptMapper.selectById(1L)).thenReturn(dept);
 
-        SysDept parent = new SysDept();
-        parent.setId(0L);
-        parent.setDeptName("总公司");
-
-        SysDeptServiceImpl spy = spy(new SysDeptServiceImpl());
-        doReturn(dept).when(spy).getById(1L);
-
-        SysDeptVO vo = spy.getDeptDetail(1L);
+        SysDeptVO vo = service.getDeptDetail(1L);
         assertNotNull(vo);
         assertEquals("技术部", vo.getDeptName());
     }
 
     @Test
     void testGetDeptDetailWithParent() {
-        SysDept dept = new SysDept();
-        dept.setId(2L);
-        dept.setDeptName("测试组");
-        dept.setParentId(1L);
+        SysDept dept = createDept(2L, "测试组", 1L);
+        SysDept parent = createDept(1L, "技术部", 0L);
+        when(deptMapper.selectById(2L)).thenReturn(dept);
+        when(deptMapper.selectById(1L)).thenReturn(parent);
 
-        SysDept parent = new SysDept();
-        parent.setId(1L);
-        parent.setDeptName("技术部");
-
-        SysDeptServiceImpl spy = spy(new SysDeptServiceImpl());
-        doReturn(dept).when(spy).getById(2L);
-        doReturn(parent).when(spy).getById(1L);
-
-        SysDeptVO vo = spy.getDeptDetail(2L);
+        SysDeptVO vo = service.getDeptDetail(2L);
         assertEquals("测试组", vo.getDeptName());
         assertEquals("技术部", vo.getParentName());
     }
 
     @Test
     void testGetDeptDetailNotFound() {
-        SysDeptServiceImpl spy = spy(new SysDeptServiceImpl());
-        doReturn(null).when(spy).getById(999L);
-
-        assertThrows(BusinessException.class, () -> spy.getDeptDetail(999L));
+        when(deptMapper.selectById(999L)).thenReturn(null);
+        assertThrows(BusinessException.class, () -> service.getDeptDetail(999L));
     }
 
     @Test
@@ -97,11 +77,8 @@ class SysDeptServiceImplTest {
         dept.setDeptName("新部门");
         dept.setParentId(1L);
 
-        SysDeptServiceImpl spy = spy(new SysDeptServiceImpl());
-        doReturn(true).when(spy).save(any(SysDept.class));
-
-        spy.createDept(dept);
-        verify(spy).save(dept);
+        service.createDept(dept);
+        verify(deptMapper).insert(dept);
     }
 
     @Test
@@ -109,42 +86,38 @@ class SysDeptServiceImplTest {
         SysDept dept = new SysDept();
         dept.setDeptName("顶级部门");
 
-        SysDeptServiceImpl spy = spy(new SysDeptServiceImpl());
-        doReturn(true).when(spy).save(any(SysDept.class));
-
-        spy.createDept(dept);
-        assertEquals(0L, dept.getParentId()); // 自动设置为顶级
+        service.createDept(dept);
+        assertEquals(0L, dept.getParentId());
     }
 
     @Test
     void testUpdateDept() {
-        SysDept dept = new SysDept();
-        dept.setId(1L);
-        dept.setDeptName("更新名称");
-
-        SysDeptServiceImpl spy = spy(new SysDeptServiceImpl());
-        doReturn(true).when(spy).updateById(any(SysDept.class));
-
-        spy.updateDept(dept);
-        verify(spy).updateById(dept);
+        SysDept dept = createDept(1L, "更新名称", 0L);
+        service.updateDept(dept);
+        verify(deptMapper).updateById(dept);
     }
 
     @Test
     void testDeleteDeptSuccess() {
-        SysDeptServiceImpl spy = spy(new SysDeptServiceImpl());
-        doReturn(0L).when(spy).count(any(LambdaQueryWrapper.class));
+        SysDeptServiceImpl spy = spy(service);
+        when(deptMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L);
         doReturn(true).when(spy).removeById(1L);
-
         spy.deleteDept(1L);
         verify(spy).removeById(1L);
     }
 
     @Test
     void testDeleteDeptHasChildren() {
-        SysDeptServiceImpl spy = spy(new SysDeptServiceImpl());
-        doReturn(1L).when(spy).count(any(LambdaQueryWrapper.class));
+        when(deptMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(1L);
+        assertThrows(BusinessException.class, () -> service.deleteDept(1L), "该部门下还有子部门，不能删除");
+        verify(deptMapper, never()).deleteById(any());
+    }
 
-        assertThrows(BusinessException.class, () -> spy.deleteDept(1L), "该部门下还有子部门，不能删除");
-        verify(spy, never()).removeById(any());
+    private SysDept createDept(Long id, String name, Long parentId) {
+        SysDept dept = new SysDept();
+        dept.setId(id);
+        dept.setDeptName(name);
+        dept.setParentId(parentId);
+        return dept;
     }
 }

@@ -8,9 +8,9 @@ import com.emclims.module.sys.entity.SysRoleMenu;
 import com.emclims.module.sys.mapper.SysMenuMapper;
 import com.emclims.module.sys.mapper.SysRoleMenuMapper;
 import com.emclims.module.sys.vo.SysMenuVO;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -32,17 +32,8 @@ class SysMenuServiceImplTest {
     @Mock
     private SysMenuMapper menuMapper;
 
+    @InjectMocks
     private SysMenuServiceImpl menuService;
-
-    @BeforeEach
-    void setUp() throws Exception {
-        menuService = new SysMenuServiceImpl(roleMenuMapper);
-        // 通过反射设置 ServiceImpl 的 baseMapper 字段
-        var baseMapperField = com.baomidou.mybatisplus.extension.service.impl.ServiceImpl.class
-                .getDeclaredField("baseMapper");
-        baseMapperField.setAccessible(true);
-        baseMapperField.set(menuService, menuMapper);
-    }
 
     private SysMenu createMenu(Long id, String name, Integer type, Long parentId, Integer sort, String permission) {
         SysMenu menu = new SysMenu();

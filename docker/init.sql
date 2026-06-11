@@ -163,6 +163,30 @@ COMMENT ON TABLE customer IS '客户表';
 COMMENT ON COLUMN customer.type IS '类型：1-企业，2-个人';
 
 -- ============================================
+-- 客户管理模块 - 联系人
+-- ============================================
+
+-- 联系人表
+CREATE TABLE customer_contact (
+    id          BIGINT PRIMARY KEY,
+    customer_id BIGINT NOT NULL,
+    name        VARCHAR(100) NOT NULL,
+    phone       VARCHAR(20),
+    email       VARCHAR(100),
+    position    VARCHAR(100),
+    is_primary  SMALLINT DEFAULT 0,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    create_by   BIGINT,
+    update_by   BIGINT,
+    deleted     SMALLINT DEFAULT 0,
+    remark      VARCHAR(500)
+);
+
+COMMENT ON TABLE customer_contact IS '联系人表';
+COMMENT ON COLUMN customer_contact.is_primary IS '是否主要联系人：0-否，1-是';
+
+-- ============================================
 -- 样品管理模块
 -- ============================================
 

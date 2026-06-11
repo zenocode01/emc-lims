@@ -1,8 +1,20 @@
-# Maven build output
+# ====================
+# Build outputs
+# ====================
 backend/target/
 backend/*.class
+frontend/dist/
+frontend/build/
 
+# ====================
+# Dependencies
+# ====================
+frontend/node_modules/
+backend/.mvn/
+
+# ====================
 # IDE
+# ====================
 .idea/
 *.iml
 .vscode/
@@ -11,22 +23,58 @@ backend/*.class
 .classpath
 *.swp
 *.swo
+*.swn
+*~
 
+# ====================
 # OS
+# ====================
 .DS_Store
 Thumbs.db
+desktop.ini
+*.swp
 
-# Node
-frontend/node_modules/
-frontend/dist/
-
+# ====================
 # Logs
+# ====================
 *.log
 logs/
 
-# Environment
+# ====================
+# Environment & secrets
+# ====================
 .env
 .env.local
+.env.*.local
 
+# ====================
+# Docker runtime data
+# ====================
+docker/data/
+docker/postgres/
+docker/redis/
+
+# ====================
 # Uploads
+# ====================
 /data/emc-lims/uploads/
+
+# ====================
+# Java archives
+# ====================
+*.jar
+*.war
+*.ear
+
+# ====================
+# Claude Code (local config, not shared)
+# ====================
+.claude/settings.local.json
+.claude/worktrees/
+.claude/scheduled-tasks/
+.claude/workflows/
+
+# ====================
+# Test reports
+# ====================
+backend/target/surefire-reports/

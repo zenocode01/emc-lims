@@ -8,6 +8,7 @@ import com.emclims.module.sys.mapper.SysNumberingRuleMapper;
 import com.emclims.module.sys.mapper.SysNumberingSequenceMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,19 +37,15 @@ public class NumberingRuleEngine {
      * @param ruleCode 规则编码
      * @return 生成的编号字符串
      */
+    @Transactional(rollbackFor = Exception.class)
     public String generateNumber(String ruleCode) {
         return generateNumber(ruleCode, LocalDate.now());
     }
 
     /**
      * 根据规则编码和业务日期生成下一个编号
-     *
-     * @param ruleCode 规则编码
-     * @param bizDate  业务日期
-     * @return 生成的编号字符串
      */
-    @Transactional(rollbackFor = Exception.class)
-    public String generateNumber(String ruleCode, LocalDate bizDate) {
+    String generateNumber(String ruleCode, LocalDate bizDate) {
         // 1. 查询编号规则
         SysNumberingRule rule = ruleMapper.selectOne(
                 new LambdaQueryWrapper<SysNumberingRule>()
@@ -58,35 +55,34 @@ public class NumberingRuleEngine {
             throw new BusinessException("编号规则未找到或已禁用: " + ruleCode);
         }
 
-        // 2. 获取或初始化日计数器
-        SysNumberingSequence seq = sequenceMapper.selectOne(
-                new LambdaQueryWrapper<SysNumberingSequence>()
-                        .eq(SysNumberingSequence::getRuleCode, ruleCode)
-                        .eq(SysNumberingSequence::getBizDate, bizDate)
-        );
+        // 2. 行锁（防止并发重复），获取当前序列值
+        Integer currentSeq = sequenceMapper.selectForUpdate(ruleCode, bizDate.toString());
+        String dateStr = bizDate.toString();
+        int seqValue;
 
-        if (seq == null) {
-            // 首次使用：创建计数器，从1开始
-            seq = new SysNumberingSequence();
+        if (currentSeq == null) {
+            // 首次使用：创建计数器
+            SysNumberingSequence seq = new SysNumberingSequence();
             seq.setRuleCode(ruleCode);
             seq.setBizDate(bizDate);
             seq.setCurrentSeq(0);
-            sequenceMapper.insert(seq);
+            try {
+                sequenceMapper.insert(seq);
+            } catch (DuplicateKeyException e) {
+                // 并发创建，另一个线程已插入成功，重新锁定
+                currentSeq = sequenceMapper.selectForUpdate(ruleCode, dateStr);
+                sequenceMapper.incrementSeq(ruleCode, dateStr);
+                seqValue = currentSeq + 1;
+                return formatNumber(rule, bizDate, seqValue);
+            }
+            sequenceMapper.incrementSeq(ruleCode, dateStr);
+            seqValue = 1;
+        } else {
+            sequenceMapper.incrementSeq(ruleCode, dateStr);
+            seqValue = currentSeq + 1;
         }
 
-        // 3. 行锁 + 递增（防止并发重复）
-        sequenceMapper.selectForUpdate(ruleCode, bizDate.toString());
-        sequenceMapper.incrementSeq(ruleCode, bizDate.toString());
-
-        // 4. 重新读取最新的序列值
-        SysNumberingSequence updated = sequenceMapper.selectOne(
-                new LambdaQueryWrapper<SysNumberingSequence>()
-                        .eq(SysNumberingSequence::getRuleCode, ruleCode)
-                        .eq(SysNumberingSequence::getBizDate, bizDate)
-        );
-        int seqValue = updated.getCurrentSeq();
-
-        // 5. 格式化编号
+        // 3. 格式化编号
         return formatNumber(rule, bizDate, seqValue);
     }
 

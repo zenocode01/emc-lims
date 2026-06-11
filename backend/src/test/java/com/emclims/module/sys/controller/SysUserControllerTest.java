@@ -114,14 +114,15 @@ class SysUserControllerTest {
 
     @Test
     void testResetPassword() throws Exception {
-        doNothing().when(userService).resetPassword(eq(1L), anyString());
+        doNothing().when(userService).resetPassword(eq(1L), anyString(), anyString());
 
         mockMvc.perform(put("/sys/user/1/password")
+                        .param("oldPassword", "oldpass")
                         .param("newPassword", "newpass123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
 
-        verify(userService).resetPassword(1L, "newpass123");
+        verify(userService).resetPassword(eq(1L), eq("oldpass"), eq("newpass123"));
     }
 
     @Test

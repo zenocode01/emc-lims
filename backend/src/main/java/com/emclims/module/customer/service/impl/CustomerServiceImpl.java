@@ -31,23 +31,12 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
         log.debug("查询客户列表，关键字: {}, 类型: {}, 行业: {}", queryDTO.getKeyword(), queryDTO.getType(), queryDTO.getIndustry());
         Page<Customer> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
 
-        LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StrUtil.isNotBlank(queryDTO.getKeyword()), Customer::getName, queryDTO.getKeyword())
-               .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), Customer::getContact, queryDTO.getKeyword())
-               .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), Customer::getPhone, queryDTO.getKeyword())
-               .eq(queryDTO.getType() != null, Customer::getType, queryDTO.getType())
-               .eq(StrUtil.isNotBlank(queryDTO.getIndustry()), Customer::getIndustry, queryDTO.getIndustry())
-               .eq(queryDTO.getStatus() != null, Customer::getStatus, queryDTO.getStatus())
-               .orderByDesc(Customer::getCreateTime);
-
+        LambdaQueryWrapper<Customer> wrapper = buildQueryWrapper(queryDTO);
         Page<Customer> customerPage = this.page(page, wrapper);
 
-        List<CustomerVO> voList = customerPage.getRecords().stream().map(customer -> {
-            CustomerVO vo = new CustomerVO();
-            BeanUtils.copyProperties(customer, vo);
-            vo.setTypeName(customer.getType() != null && customer.getType() == 1 ? "企业" : "个人");
-            return vo;
-        }).collect(Collectors.toList());
+        List<CustomerVO> voList = customerPage.getRecords().stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
 
         Page<CustomerVO> result = new Page<>(customerPage.getCurrent(), customerPage.getSize(), customerPage.getTotal());
         result.setRecords(voList);
@@ -122,22 +111,46 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
     @Override
     public List<CustomerExportVO> exportCustomers(CustomerQueryDTO queryDTO) {
         log.debug("导出客户列表，关键字: {}", queryDTO.getKeyword());
-        LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StrUtil.isNotBlank(queryDTO.getKeyword()), Customer::getName, queryDTO.getKeyword())
-               .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), Customer::getContact, queryDTO.getKeyword())
-               .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), Customer::getPhone, queryDTO.getKeyword())
-               .eq(queryDTO.getType() != null, Customer::getType, queryDTO.getType())
-               .eq(StrUtil.isNotBlank(queryDTO.getIndustry()), Customer::getIndustry, queryDTO.getIndustry())
-               .eq(queryDTO.getStatus() != null, Customer::getStatus, queryDTO.getStatus())
-               .orderByDesc(Customer::getCreateTime);
-
+        LambdaQueryWrapper<Customer> wrapper = buildQueryWrapper(queryDTO);
         List<Customer> customers = this.list(wrapper);
-        return customers.stream().map(customer -> {
-            CustomerExportVO vo = new CustomerExportVO();
-            BeanUtils.copyProperties(customer, vo);
-            vo.setTypeName(customer.getType() != null && customer.getType() == 1 ? "企业" : "个人");
-            vo.setStatusName(customer.getStatus() != null && customer.getStatus() == 1 ? "启用" : "禁用");
-            return vo;
-        }).collect(Collectors.toList());
+        return customers.stream()
+                .map(this::convertToExportVO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 构建查询条件
+     */
+    private LambdaQueryWrapper<Customer> buildQueryWrapper(CustomerQueryDTO queryDTO) {
+        return new LambdaQueryWrapper<Customer>()
+                .and(StrUtil.isNotBlank(queryDTO.getKeyword()), w ->
+                        w.like(Customer::getName, queryDTO.getKeyword())
+                                .or().like(Customer::getContact, queryDTO.getKeyword())
+                                .or().like(Customer::getPhone, queryDTO.getKeyword()))
+                .eq(queryDTO.getType() != null, Customer::getType, queryDTO.getType())
+                .eq(StrUtil.isNotBlank(queryDTO.getIndustry()), Customer::getIndustry, queryDTO.getIndustry())
+                .eq(queryDTO.getStatus() != null, Customer::getStatus, queryDTO.getStatus())
+                .orderByDesc(Customer::getCreateTime);
+    }
+
+    /**
+     * 转换为 VO
+     */
+    private CustomerVO convertToVO(Customer customer) {
+        CustomerVO vo = new CustomerVO();
+        BeanUtils.copyProperties(customer, vo);
+        vo.setTypeName(customer.getType() != null && customer.getType() == 1 ? "企业" : "个人");
+        return vo;
+    }
+
+    /**
+     * 转换为导出 VO
+     */
+    private CustomerExportVO convertToExportVO(Customer customer) {
+        CustomerExportVO vo = new CustomerExportVO();
+        BeanUtils.copyProperties(customer, vo);
+        vo.setTypeName(customer.getType() != null && customer.getType() == 1 ? "企业" : "个人");
+        vo.setStatusName(customer.getStatus() != null && customer.getStatus() == 1 ? "启用" : "禁用");
+        return vo;
     }
 }

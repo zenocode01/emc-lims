@@ -65,8 +65,8 @@ public class SysUserController {
 
     @Operation(summary = "重置密码")
     @PutMapping("/{id}/password")
-    public R<Void> resetPassword(@PathVariable Long id, @RequestParam String newPassword) {
-        userService.resetPassword(id, newPassword);
+    public R<Void> resetPassword(@PathVariable Long id, @RequestParam String oldPassword, @RequestParam String newPassword) {
+        userService.resetPassword(id, oldPassword, newPassword);
         return R.ok();
     }
 

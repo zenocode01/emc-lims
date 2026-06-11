@@ -158,16 +158,30 @@ class SysUserServiceImplTest {
     void testResetPassword() {
         SysUser user = new SysUser();
         user.setId(1L);
-        user.setPassword("oldPassword");
+        user.setPassword("$2a$10$encodedOldPass");
 
         SysUserServiceImpl spy = spy(userService);
         doReturn(user).when(spy).getById(1L);
+        when(passwordEncoder.matches("oldPass", "$2a$10$encodedOldPass")).thenReturn(true);
         when(passwordEncoder.encode("newPass123")).thenReturn("$2a$10$newEncoded");
         doReturn(true).when(spy).updateById(any(SysUser.class));
 
-        spy.resetPassword(1L, "newPass123");
+        spy.resetPassword(1L, "oldPass", "newPass123");
         assertEquals("$2a$10$newEncoded", user.getPassword());
         verify(spy).updateById(user);
+    }
+
+    @Test
+    void testResetPasswordWrongOldPassword() {
+        SysUser user = new SysUser();
+        user.setId(1L);
+        user.setPassword("$2a$10$encodedOldPass");
+
+        SysUserServiceImpl spy = spy(userService);
+        doReturn(user).when(spy).getById(1L);
+        when(passwordEncoder.matches("wrongPass", "$2a$10$encodedOldPass")).thenReturn(false);
+
+        assertThrows(BusinessException.class, () -> spy.resetPassword(1L, "wrongPass", "newPass"));
     }
 
     @Test
@@ -175,7 +189,7 @@ class SysUserServiceImplTest {
         SysUserServiceImpl spy = spy(userService);
         doReturn(null).when(spy).getById(1L);
 
-        assertThrows(BusinessException.class, () -> spy.resetPassword(1L, "newPass"));
+        assertThrows(BusinessException.class, () -> spy.resetPassword(1L, "wrongPass", "newPass"));
     }
 
     @Test

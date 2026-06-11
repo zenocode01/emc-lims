@@ -198,11 +198,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public void resetPassword(Long id, String newPassword) {
+    public void resetPassword(Long id, String oldPassword, String newPassword) {
         log.info("重置用户密码，用户ID: {}", id);
         SysUser user = this.getById(id);
         if (user == null) {
             throw new BusinessException("用户不存在");
+        }
+        // 验证旧密码
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new BusinessException("旧密码不正确");
         }
         user.setPassword(passwordEncoder.encode(newPassword));
         this.updateById(user);

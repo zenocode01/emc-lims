@@ -9,6 +9,9 @@ import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * EMC LIMS 数据权限处理器
  * 根据用户角色的 data_scope 自动添加部门数据过滤条件
@@ -20,6 +23,34 @@ import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
  * 4 - 仅本人数据
  */
 public class EmcDataPermissionHandler implements DataPermissionHandler {
+
+    /**
+     * 表名到部门字段的映射
+     * key: 表名（小写）
+     * value: 部门字段名，null 表示无部门过滤
+     */
+    private static final Map<String, String> TABLE_DEPT_FIELD_MAP = new HashMap<>();
+
+    static {
+        // sys 模块 - 标准 dept_id
+        TABLE_DEPT_FIELD_MAP.put("sys_user", "dept_id");
+        TABLE_DEPT_FIELD_MAP.put("sys_dept", "parent_id");
+        TABLE_DEPT_FIELD_MAP.put("sys_role", null);
+        TABLE_DEPT_FIELD_MAP.put("sys_menu", null);
+
+        // customer 模块 - 使用 customer_id
+        TABLE_DEPT_FIELD_MAP.put("customer", null);
+        TABLE_DEPT_FIELD_MAP.put("customer_contact", null);
+
+        // sample 模块 - 使用 sample_id
+        TABLE_DEPT_FIELD_MAP.put("sample", null);
+        TABLE_DEPT_FIELD_MAP.put("sample_image", null);
+        TABLE_DEPT_FIELD_MAP.put("sample_log", null);
+        TABLE_DEPT_FIELD_MAP.put("sample_retention", null);
+
+        // 默认使用 dept_id
+        TABLE_DEPT_FIELD_MAP.put("default", "dept_id");
+    }
 
     @Override
     public Expression getSqlSegment(Expression whereExpression, String tableName) {
@@ -42,24 +73,25 @@ public class EmcDataPermissionHandler implements DataPermissionHandler {
             return whereExpression;
         }
 
+        String deptColumn = resolveDeptColumn(tableName);
+        // 表没有部门字段，不做过滤
+        if (deptColumn == null) {
+            return whereExpression;
+        }
+
         Expression deptExpression;
         switch (dataScope) {
             case 2:
                 // 2 - 本部门数据
-                deptExpression = new EqualsTo(new Column("dept_id"),
-                        new LongValue(deptId));
+                deptExpression = new EqualsTo(new Column(deptColumn), new LongValue(deptId));
                 break;
             case 3:
-                // 3 - 本部门及子部门数据（使用 OR 条件）
-                // 注意：这里简化处理，直接查询当前部门
-                // 如需完整递归子部门查询，建议改用 MyBatis 动态 SQL 或应用层过滤
-                deptExpression = new EqualsTo(new Column("dept_id"),
-                        new LongValue(deptId));
+                // 3 - 本部门及子部门数据（简化处理）
+                deptExpression = new EqualsTo(new Column(deptColumn), new LongValue(deptId));
                 break;
             case 4:
                 // 4 - 仅本人数据
-                deptExpression = new EqualsTo(new Column("create_by"),
-                        new LongValue(userId));
+                deptExpression = new EqualsTo(new Column("create_by"), new LongValue(userId));
                 break;
             default:
                 return whereExpression;
@@ -72,10 +104,39 @@ public class EmcDataPermissionHandler implements DataPermissionHandler {
     }
 
     /**
+     * 根据表名解析部门字段名
+     */
+    private String resolveDeptColumn(String tableName) {
+        if (tableName == null) {
+            return "dept_id";
+        }
+        // 尝试直接匹配
+        if (TABLE_DEPT_FIELD_MAP.containsKey(tableName.toLowerCase())) {
+            return TABLE_DEPT_FIELD_MAP.get(tableName.toLowerCase());
+        }
+        // MP 传入完整方法名，提取表名
+        String simpleName = extractTableName(tableName);
+        return TABLE_DEPT_FIELD_MAP.getOrDefault(simpleName, TABLE_DEPT_FIELD_MAP.get("default"));
+    }
+
+    /**
+     * 从完整方法名中提取表名
+     */
+    private String extractTableName(String fullMethodName) {
+        // 例如: com.emclims.module.sys.mapper.SysUserMapper.selectPage -> sys_user
+        String[] parts = fullMethodName.split("\\.");
+        if (parts.length < 2) {
+            return fullMethodName.toLowerCase();
+        }
+        String className = parts[parts.length - 2];
+        // 去掉 Mapper 后缀，转小写
+        String baseName = className.replaceAll("Mapper$", "");
+        // 驼峰转下划线
+        return baseName.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+    }
+
+    /**
      * 判断是否为不需要数据权限过滤的关联表
-     * MP 传入的 tableName 是 Mapper 接口的完整方法名（如：
-     * com.emclims.module.sys.mapper.SysUserRoleMapper.deleteById），
-     * 转小写后下划线被吞掉，需要根据 Mapper 类名判断。
      */
     private boolean isAssociationTable(String tableName) {
         if (tableName == null) {

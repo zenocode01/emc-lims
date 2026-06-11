@@ -42,7 +42,7 @@ public interface SysUserService extends IService<SysUser> {
     /**
      * 重置密码
      */
-    void resetPassword(Long id, String newPassword);
+    void resetPassword(Long id, String oldPassword, String newPassword);
 
     /**
      * 修改状态

@@ -7,6 +7,7 @@ import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 
 /**
  * EMC LIMS 数据权限处理器
@@ -44,18 +45,16 @@ public class EmcDataPermissionHandler implements DataPermissionHandler {
                         new LongValue(deptId));
                 break;
             case 3:
-                // 3 - 本部门及子部门数据（简化处理：后续可使用 CTE 递归）
+                // 3 - 本部门及子部门数据（使用 OR 条件）
+                // 注意：这里简化处理，直接查询当前部门
+                // 如需完整递归子部门查询，建议改用 MyBatis 动态 SQL 或应用层过滤
                 deptExpression = new EqualsTo(new Column("dept_id"),
                         new LongValue(deptId));
                 break;
             case 4:
-                // 4 - 仅本人数据（创建人 + 所属部门）
-                deptExpression = new AndExpression(
-                        new EqualsTo(new Column("create_by"),
-                                new LongValue(userId)),
-                        new EqualsTo(new Column("dept_id"),
-                                new LongValue(deptId))
-                );
+                // 4 - 仅本人数据
+                deptExpression = new EqualsTo(new Column("create_by"),
+                        new LongValue(userId));
                 break;
             default:
                 return whereExpression;

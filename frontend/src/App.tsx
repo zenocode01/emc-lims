@@ -1,12 +1,23 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { ConfigProvider, Layout, Menu, theme } from 'antd'
-import { TeamOutlined, HomeOutlined, SettingOutlined } from '@ant-design/icons'
+import {
+  TeamOutlined,
+  HomeOutlined,
+  SettingOutlined,
+  UserOutlined,
+  MenuUnfoldOutlined,
+  ApartmentOutlined,
+} from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 import CustomerPage from './pages/customer'
 import LoginPage from './pages/login'
 import DashboardPage from './pages/dashboard'
 import NumberingRulePage from './pages/numbering-rule'
+import UserPage from './pages/sys/user'
+import RolePage from './pages/sys/role'
+import MenuPage from './pages/sys/menu'
+import DeptPage from './pages/sys/dept'
 
 const { Header, Sider, Content } = Layout
 
@@ -33,6 +44,33 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       key: '/numbering-rule',
       icon: <SettingOutlined />,
       label: '编号规则',
+    },
+    {
+      type: 'group' as const,
+      label: '系统管理',
+      icon: <ApartmentOutlined />,
+      children: [
+        {
+          key: '/sys/user',
+          icon: <UserOutlined />,
+          label: '用户管理',
+        },
+        {
+          key: '/sys/role',
+          icon: <SettingOutlined />,
+          label: '角色管理',
+        },
+        {
+          key: '/sys/menu',
+          icon: <MenuUnfoldOutlined />,
+          label: '菜单管理',
+        },
+        {
+          key: '/sys/dept',
+          icon: <ApartmentOutlined />,
+          label: '部门管理',
+        },
+      ],
     },
   ]
 
@@ -162,6 +200,46 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/sys/user"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <UserPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sys/role"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <RolePage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sys/menu"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <MenuPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sys/dept"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <DeptPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -169,7 +247,5 @@ function App() {
     </ConfigProvider>
   )
 }
-
-
 
 export default App

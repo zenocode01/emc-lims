@@ -10,9 +10,11 @@ import com.emclims.module.sys.dto.SysUserQueryDTO;
 import com.emclims.module.sys.entity.SysDept;
 import com.emclims.module.sys.entity.SysRole;
 import com.emclims.module.sys.entity.SysUser;
+import com.emclims.module.sys.entity.SysUserRole;
 import com.emclims.module.sys.mapper.SysDeptMapper;
 import com.emclims.module.sys.mapper.SysRoleMapper;
 import com.emclims.module.sys.mapper.SysUserMapper;
+import com.emclims.module.sys.mapper.SysUserRoleMapper;
 import com.emclims.module.sys.service.SysUserService;
 import com.emclims.module.sys.vo.SysUserVO;
 import org.springframework.beans.BeanUtils;
@@ -29,12 +31,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     private final SysDeptMapper deptMapper;
     private final SysRoleMapper roleMapper;
+    private final SysUserRoleMapper userRoleMapper;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     public SysUserServiceImpl(SysDeptMapper deptMapper, SysRoleMapper roleMapper,
+                              SysUserRoleMapper userRoleMapper,
                               org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.deptMapper = deptMapper;
         this.roleMapper = roleMapper;
+        this.userRoleMapper = userRoleMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -47,7 +52,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), SysUser::getNickname, queryDTO.getKeyword())
                .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), SysUser::getEmployeeCode, queryDTO.getKeyword())
                .eq(queryDTO.getDeptId() != null, SysUser::getDeptId, queryDTO.getDeptId())
-               .eq(queryDTO.getRoleId() != null, SysUser::getRoleId, queryDTO.getRoleId())
                .eq(queryDTO.getStatus() != null, SysUser::getStatus, queryDTO.getStatus())
                .between(queryDTO.getCreateTimeStart() != null && queryDTO.getCreateTimeEnd() != null,
                        SysUser::getCreateTime, queryDTO.getCreateTimeStart(), queryDTO.getCreateTimeEnd())
@@ -55,7 +59,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         Page<SysUser> userPage = this.page(page, wrapper);
 
-        // 填充部门名和角色名
+        // 按角色筛选
+        if (queryDTO.getRoleId() != null) {
+            List<Long> userIdsWithRole = userRoleMapper.selectUserIdsByRoleId(queryDTO.getRoleId());
+            if (!userPage.getRecords().isEmpty()) {
+                List<SysUser> filtered = userPage.getRecords().stream()
+                        .filter(u -> userIdsWithRole.contains(u.getId()))
+                        .collect(Collectors.toList());
+                userPage.getRecords().clear();
+                userPage.getRecords().addAll(filtered);
+                userPage.setTotal(userPage.getRecords().size());
+            }
+        }
+
+        // 填充部门名和角色列表
         List<SysUserVO> voList = userPage.getRecords().stream().map(user -> {
             SysUserVO vo = new SysUserVO();
             BeanUtils.copyProperties(user, vo);
@@ -65,11 +82,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                     vo.setDeptName(dept.getDeptName());
                 }
             }
-            if (user.getRoleId() != null) {
-                SysRole role = roleMapper.selectById(user.getRoleId());
-                if (role != null) {
-                    vo.setRoleName(role.getRoleName());
-                    vo.setRoleCode(role.getRoleCode());
+            // 从关联表查询角色列表
+            List<Long> roleIds = userRoleMapper.selectRoleIdsByUserId(user.getId());
+            if (roleIds != null && !roleIds.isEmpty()) {
+                // 设置第一个角色为默认角色（兼容旧版）
+                SysRole defaultRole = roleMapper.selectById(roleIds.get(0));
+                if (defaultRole != null) {
+                    vo.setRoleName(defaultRole.getRoleName());
+                    vo.setRoleCode(defaultRole.getRoleCode());
                 }
             }
             return vo;
@@ -95,11 +115,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 vo.setDeptName(dept.getDeptName());
             }
         }
-        if (user.getRoleId() != null) {
-            SysRole role = roleMapper.selectById(user.getRoleId());
-            if (role != null) {
-                vo.setRoleName(role.getRoleName());
-                vo.setRoleCode(role.getRoleCode());
+        // 从关联表查询角色列表
+        List<Long> roleIds = userRoleMapper.selectRoleIdsByUserId(user.getId());
+        if (roleIds != null && !roleIds.isEmpty()) {
+            // 设置第一个角色为默认角色（兼容旧版）
+            SysRole defaultRole = roleMapper.selectById(roleIds.get(0));
+            if (defaultRole != null) {
+                vo.setRoleName(defaultRole.getRoleName());
+                vo.setRoleCode(defaultRole.getRoleCode());
+                vo.setRoleId(defaultRole.getId());
             }
         }
         return vo;
@@ -118,6 +142,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         BeanUtils.copyProperties(dto, user);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         this.save(user);
+
+        // 保存角色关联
+        saveUserRoles(user.getId(), dto.getRoleIds());
     }
 
     @Override
@@ -135,15 +162,23 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException("手机号已被其他用户使用");
         }
 
-        BeanUtils.copyProperties(dto, user, "password");
+        BeanUtils.copyProperties(dto, user, "password", "roleIds");
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
         this.updateById(user);
+
+        // 更新角色关联：先删除旧的，再插入新的
+        userRoleMapper.deleteByUserId(user.getId());
+        saveUserRoles(user.getId(), dto.getRoleIds());
     }
 
     @Override
     public void deleteUsers(List<Long> ids) {
+        // 先删除用户角色关联
+        for (Long id : ids) {
+            userRoleMapper.deleteByUserId(id);
+        }
         this.removeByIds(ids);
     }
 
@@ -165,5 +200,23 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         user.setStatus(status);
         this.updateById(user);
+    }
+
+    /**
+     * 保存用户角色关联
+     */
+    private void saveUserRoles(Long userId, List<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return;
+        }
+        List<SysUserRole> userRoles = roleIds.stream()
+                .map(roleId -> {
+                    SysUserRole userRole = new SysUserRole();
+                    userRole.setUserId(userId);
+                    userRole.setRoleId(roleId);
+                    return userRole;
+                })
+                .collect(Collectors.toList());
+        userRoleMapper.batchInsert(userRoles);
     }
 }

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.emclims.common.exception.BusinessException;
+import com.emclims.common.numbering.NumberingRuleEngine;
 import com.emclims.module.customer.entity.Customer;
 import com.emclims.module.customer.mapper.CustomerMapper;
 import com.emclims.module.sample.dto.SampleDTO;
@@ -38,12 +39,15 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
     private final CustomerMapper customerMapper;
     private final SysUserMapper userMapper;
     private final SampleLogMapper sampleLogMapper;
+    private final NumberingRuleEngine numberingRuleEngine;
 
     public SampleServiceImpl(CustomerMapper customerMapper, SysUserMapper userMapper,
-                             SampleLogMapper sampleLogMapper) {
+                             SampleLogMapper sampleLogMapper,
+                             NumberingRuleEngine numberingRuleEngine) {
         this.customerMapper = customerMapper;
         this.userMapper = userMapper;
         this.sampleLogMapper = sampleLogMapper;
+        this.numberingRuleEngine = numberingRuleEngine;
     }
 
     @Override
@@ -80,8 +84,8 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void receiveSample(SampleDTO dto) {
-        // 生成样品编号（简化版：时间戳 + 随机数）
-        String sampleNo = "S" + System.currentTimeMillis();
+        // 使用编号规则引擎生成样品编号（格式：EMC-yyyyMMdd-xxxx）
+        String sampleNo = numberingRuleEngine.generateNumber("SAMPLE_DEFAULT");
 
         Sample sample = new Sample();
         BeanUtils.copyProperties(dto, sample);

@@ -1,11 +1,12 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { ConfigProvider, Layout, Menu, theme } from 'antd'
-import { TeamOutlined, HomeOutlined } from '@ant-design/icons'
+import { TeamOutlined, HomeOutlined, SettingOutlined } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 import CustomerPage from './pages/customer'
 import LoginPage from './pages/login'
 import DashboardPage from './pages/dashboard'
+import NumberingRulePage from './pages/numbering-rule'
 
 const { Header, Sider, Content } = Layout
 
@@ -27,6 +28,11 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       key: '/customer',
       icon: <TeamOutlined />,
       label: '客户管理',
+    },
+    {
+      key: '/numbering-rule',
+      icon: <SettingOutlined />,
+      label: '编号规则',
     },
   ]
 
@@ -142,6 +148,16 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <CustomerPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/numbering-rule"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <NumberingRulePage />
               </AppLayout>
             </ProtectedRoute>
           }

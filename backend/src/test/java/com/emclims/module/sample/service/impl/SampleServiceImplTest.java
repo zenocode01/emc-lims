@@ -11,6 +11,7 @@ import com.emclims.module.sample.dto.SampleStatusDTO;
 import com.emclims.module.sample.entity.Sample;
 import com.emclims.module.sample.entity.SampleLog;
 import com.emclims.module.sample.enums.SampleStatusEnum;
+import com.emclims.common.numbering.NumberingRuleEngine;
 import com.emclims.module.sample.mapper.SampleLogMapper;
 import com.emclims.module.sample.mapper.SampleMapper;
 import com.emclims.module.sample.vo.SampleLogVO;
@@ -52,11 +53,14 @@ class SampleServiceImplTest {
     @Mock
     private SampleLogMapper sampleLogMapper;
 
+    @Mock
+    private NumberingRuleEngine numberingRuleEngine;
+
     private SampleServiceImpl sampleService;
 
     @org.junit.jupiter.api.BeforeEach
     void setUp() {
-        sampleService = new SampleServiceImpl(customerMapper, userMapper, sampleLogMapper);
+        sampleService = new SampleServiceImpl(customerMapper, userMapper, sampleLogMapper, numberingRuleEngine);
         
         // 设置 mock 的 RequestContextHolder 以便 SecurityUtils 可以获取 userId
         MockHttpServletRequest request = new MockHttpServletRequest();

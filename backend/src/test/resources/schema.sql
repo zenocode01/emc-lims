@@ -61,4 +61,33 @@ CREATE TABLE IF NOT EXISTS sys_user (
     remark        VARCHAR(500)
 );
 
+CREATE TABLE IF NOT EXISTS sys_numbering_rule (
+    id              BIGINT PRIMARY KEY,
+    rule_code       VARCHAR(50) NOT NULL UNIQUE,
+    rule_name       VARCHAR(100) NOT NULL,
+    module_type     VARCHAR(50) NOT NULL,
+    prefix          VARCHAR(20),
+    date_pattern    VARCHAR(20),
+    seq_length      INT DEFAULT 4,
+    separator       VARCHAR(5) DEFAULT '-',
+    description     VARCHAR(500),
+    status          SMALLINT DEFAULT 1,
+    create_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    create_by       BIGINT,
+    update_by       BIGINT,
+    deleted         SMALLINT DEFAULT 0,
+    remark          VARCHAR(500)
+);
+
+CREATE TABLE IF NOT EXISTS sys_numbering_sequence (
+    id              BIGINT PRIMARY KEY,
+    rule_code       VARCHAR(50) NOT NULL,
+    biz_date        DATE NOT NULL,
+    current_seq     INT DEFAULT 0,
+    create_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_rule_date UNIQUE (rule_code, biz_date)
+);
+
 

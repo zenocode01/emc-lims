@@ -536,6 +536,59 @@ INSERT INTO sys_role (id, role_name, role_code, role_desc) VALUES
 INSERT INTO sys_user_role (id, user_id, role_id) VALUES
 (1, 1, 1);
 
+-- ============================================
+-- 编号规则引擎模块
+-- ============================================
+
+-- 编号规则配置表
+CREATE TABLE sys_numbering_rule (
+    id              BIGINT PRIMARY KEY,
+    rule_code       VARCHAR(50) NOT NULL UNIQUE,
+    rule_name       VARCHAR(100) NOT NULL,
+    module_type     VARCHAR(50) NOT NULL,
+    prefix          VARCHAR(20),
+    date_pattern    VARCHAR(20),
+    seq_length      INT DEFAULT 4,
+    separator       VARCHAR(5) DEFAULT '-',
+    description     VARCHAR(500),
+    status          SMALLINT DEFAULT 1,
+    create_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    create_by       BIGINT,
+    update_by       BIGINT,
+    deleted         SMALLINT DEFAULT 0,
+    remark          VARCHAR(500)
+);
+
+COMMENT ON TABLE sys_numbering_rule IS '编号规则配置表';
+COMMENT ON COLUMN sys_numbering_rule.rule_code IS '规则编码（唯一）';
+COMMENT ON COLUMN sys_numbering_rule.module_type IS '模块类型（sample-样品, report-报告, contract-合同等）';
+COMMENT ON COLUMN sys_numbering_rule.prefix IS '前缀，如 EMC';
+COMMENT ON COLUMN sys_numbering_rule.date_pattern IS '日期格式，如 yyyyMMdd';
+COMMENT ON COLUMN sys_numbering_rule.seq_length IS '流水号长度，如 4 表示 0001';
+COMMENT ON COLUMN sys_numbering_rule.separator IS '分隔符，如 -';
+
+-- 编号序列计数器表（每天归零）
+CREATE TABLE sys_numbering_sequence (
+    id              BIGINT PRIMARY KEY,
+    rule_code       VARCHAR(50) NOT NULL,
+    biz_date        DATE NOT NULL,
+    current_seq     INT DEFAULT 0,
+    create_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_rule_date UNIQUE (rule_code, biz_date)
+);
+
+COMMENT ON TABLE sys_numbering_sequence IS '编号序列日计数器表';
+COMMENT ON COLUMN sys_numbering_sequence.rule_code IS '规则编码';
+COMMENT ON COLUMN sys_numbering_sequence.biz_date IS '业务日期';
+COMMENT ON COLUMN sys_numbering_sequence.current_seq IS '当前已使用到的序列号';
+
+-- 插入默认样品编号规则（格式：EMC-20260611-0001）
+INSERT INTO sys_numbering_rule (id, rule_code, rule_name, module_type, prefix, date_pattern, seq_length, separator, status) VALUES
+(1, 'SAMPLE_DEFAULT', '样品编号规则', 'sample', 'EMC', 'yyyyMMdd', 4, '-', 1);
+COMMIT;
+
 -- 插入常用数据字典
 INSERT INTO sys_dict (id, type, code, value, label, sort) VALUES
 (1, 'sample_status', 'pending', 'pending', '待接收', 1),

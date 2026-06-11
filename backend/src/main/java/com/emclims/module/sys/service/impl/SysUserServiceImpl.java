@@ -70,25 +70,35 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         Page<SysUser> userPage = this.page(page, wrapper);
 
+        // 批量查询部门和角色，避免 N+1
+        List<Long> deptIds = userPage.getRecords().stream().map(SysUser::getDeptId).filter(id -> id != null).distinct().collect(Collectors.toList());
+        java.util.List<Long> userIds = userPage.getRecords().stream().map(SysUser::getId).collect(Collectors.toList());
+
+        java.util.Map<Long, SysDept> deptMap = deptIds.isEmpty() ? java.util.Collections.emptyMap() :
+                deptMapper.selectBatchIds(deptIds).stream().collect(Collectors.toMap(SysDept::getId, d -> d));
+
+        java.util.Map<Long, SysRole> defaultRoleMap = new java.util.HashMap<>();
+        for (Long userId : userIds) {
+            List<Long> roleIds = userRoleMapper.selectRoleIdsByUserId(userId);
+            if (roleIds != null && !roleIds.isEmpty()) {
+                SysRole role = roleMapper.selectById(roleIds.get(0));
+                if (role != null) {
+                    defaultRoleMap.put(userId, role);
+                }
+            }
+        }
+
         // 填充部门名和角色列表
         List<SysUserVO> voList = userPage.getRecords().stream().map(user -> {
             SysUserVO vo = new SysUserVO();
             BeanUtils.copyProperties(user, vo);
-            if (user.getDeptId() != null) {
-                SysDept dept = deptMapper.selectById(user.getDeptId());
-                if (dept != null) {
-                    vo.setDeptName(dept.getDeptName());
-                }
+            if (user.getDeptId() != null && deptMap.containsKey(user.getDeptId())) {
+                vo.setDeptName(deptMap.get(user.getDeptId()).getDeptName());
             }
-            // 从关联表查询角色列表
-            List<Long> roleIds = userRoleMapper.selectRoleIdsByUserId(user.getId());
-            if (roleIds != null && !roleIds.isEmpty()) {
-                // 设置第一个角色为默认角色（兼容旧版）
-                SysRole defaultRole = roleMapper.selectById(roleIds.get(0));
-                if (defaultRole != null) {
-                    vo.setRoleName(defaultRole.getRoleName());
-                    vo.setRoleCode(defaultRole.getRoleCode());
-                }
+            if (defaultRoleMap.containsKey(user.getId())) {
+                SysRole role = defaultRoleMap.get(user.getId());
+                vo.setRoleName(role.getRoleName());
+                vo.setRoleCode(role.getRoleCode());
             }
             return vo;
         }).collect(Collectors.toList());

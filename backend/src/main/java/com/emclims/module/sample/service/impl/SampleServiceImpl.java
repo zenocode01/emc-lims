@@ -68,7 +68,21 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
 
         Page<Sample> samplePage = this.page(page, wrapper);
 
-        List<SampleVO> voList = samplePage.getRecords().stream().map(this::convertToVO).collect(Collectors.toList());
+        // 批量查询客户和测试员，避免 N+1
+        List<Long> customerIds = samplePage.getRecords().stream().map(Sample::getCustomerId).filter(id -> id != null).distinct().collect(Collectors.toList());
+        java.util.Set<Long> userIdSet = new java.util.HashSet<>();
+        for (Sample s : samplePage.getRecords()) {
+            if (s.getTesterId() != null) userIdSet.add(s.getTesterId());
+            if (s.getReceiveBy() != null) userIdSet.add(s.getReceiveBy());
+        }
+        java.util.List<Long> allUserIds = new java.util.ArrayList<>(userIdSet);
+
+        java.util.Map<Long, Customer> customerMap = customerIds.isEmpty() ? java.util.Collections.emptyMap() :
+                customerMapper.selectBatchIds(customerIds).stream().collect(Collectors.toMap(Customer::getId, c -> c));
+        java.util.Map<Long, SysUser> userMap = allUserIds.isEmpty() ? java.util.Collections.emptyMap() :
+                userMapper.selectBatchIds(allUserIds).stream().collect(Collectors.toMap(SysUser::getId, u -> u));
+
+        List<SampleVO> voList = samplePage.getRecords().stream().map(s -> convertToVO(s, customerMap, userMap)).collect(Collectors.toList());
 
         Page<SampleVO> result = new Page<>(samplePage.getCurrent(), samplePage.getSize(), samplePage.getTotal());
         result.setRecords(voList);
@@ -144,24 +158,48 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
         wrapper.eq(SampleLog::getSampleId, sampleId)
                .orderByDesc(SampleLog::getOperateTime);
 
-        return sampleLogMapper.selectList(wrapper).stream().map(log -> {
+        java.util.List<SampleLog> logs = sampleLogMapper.selectList(wrapper);
+
+        // 批量查询操作员，避免 N+1
+        java.util.List<Long> operatorIds = logs.stream().map(SampleLog::getOperator).filter(id -> id != null).distinct().collect(Collectors.toList());
+        java.util.Map<Long, SysUser> userMap = operatorIds.isEmpty() ? java.util.Collections.emptyMap() :
+                userMapper.selectBatchIds(operatorIds).stream().collect(Collectors.toMap(SysUser::getId, u -> u));
+
+        return logs.stream().map(log -> {
             SampleLogVO vo = new SampleLogVO();
             BeanUtils.copyProperties(log, vo);
             vo.setFromStatusName(log.getFromStatus() != null ? SampleStatusEnum.fromValue(log.getFromStatus()).getLabel() : "");
             vo.setToStatusName(SampleStatusEnum.fromValue(log.getToStatus()).getLabel());
 
-            if (log.getOperator() != null) {
-                SysUser user = userMapper.selectById(log.getOperator());
-                if (user != null) {
-                    vo.setOperatorName(user.getNickname());
-                }
+            if (log.getOperator() != null && userMap.containsKey(log.getOperator())) {
+                vo.setOperatorName(userMap.get(log.getOperator()).getNickname());
             }
             return vo;
         }).collect(Collectors.toList());
     }
 
     /**
-     * 转换为 VO
+     * 转换为 VO（批量查询版）
+     */
+    private SampleVO convertToVO(Sample sample, java.util.Map<Long, Customer> customerMap, java.util.Map<Long, SysUser> userMap) {
+        SampleVO vo = new SampleVO();
+        BeanUtils.copyProperties(sample, vo);
+        vo.setStatusName(SampleStatusEnum.fromValue(sample.getStatus()).getLabel());
+
+        if (sample.getCustomerId() != null && customerMap.containsKey(sample.getCustomerId())) {
+            vo.setCustomerName(customerMap.get(sample.getCustomerId()).getName());
+        }
+        if (sample.getTesterId() != null && userMap.containsKey(sample.getTesterId())) {
+            vo.setTesterName(userMap.get(sample.getTesterId()).getNickname());
+        }
+        if (sample.getReceiveBy() != null && userMap.containsKey(sample.getReceiveBy())) {
+            vo.setReceiveByName(userMap.get(sample.getReceiveBy()).getNickname());
+        }
+        return vo;
+    }
+
+    /**
+     * 转换为 VO（单个查询，用于详情页面）
      */
     private SampleVO convertToVO(Sample sample) {
         SampleVO vo = new SampleVO();

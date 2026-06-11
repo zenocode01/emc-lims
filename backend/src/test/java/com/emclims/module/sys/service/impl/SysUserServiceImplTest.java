@@ -263,7 +263,14 @@ class SysUserServiceImplTest {
         SysDept dept = new SysDept();
         dept.setId(10L);
         dept.setDeptName("测试部");
-        when(deptMapper.selectById(10L)).thenReturn(dept);
+        when(deptMapper.selectBatchIds(any())).thenReturn(List.of(dept));
+
+        SysRole role = new SysRole();
+        role.setId(20L);
+        role.setRoleName("测试角色");
+        role.setRoleCode("TEST");
+        when(roleMapper.selectById(20L)).thenReturn(role);
+        when(userRoleMapper.selectRoleIdsByUserId(1L)).thenReturn(List.of(20L));
 
         Page<SysUserVO> result = spy.pageUsers(queryDTO);
         assertNotNull(result);

@@ -53,9 +53,10 @@ public class DataPermissionLoader {
         // 查询用户所有角色，获取最大的 dataScope（1-全部 > 2-本部门 > 3-本部门及子部门 > 4-仅本人）
         List<Long> roleIds = userRoleMapper.selectRoleIdsByUserId(userId);
         if (roleIds != null && !roleIds.isEmpty()) {
+            // 批量查询角色，避免 N+1 查询
+            List<SysRole> roles = roleMapper.selectBatchIds(roleIds);
             Integer maxDataScope = null;
-            for (Long roleId : roleIds) {
-                SysRole role = roleMapper.selectById(roleId);
+            for (SysRole role : roles) {
                 if (role != null && role.getDataScope() != null) {
                     // dataScope 越小权限越大，取最小值
                     if (maxDataScope == null || role.getDataScope() < maxDataScope) {

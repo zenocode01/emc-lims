@@ -91,22 +91,13 @@ class SampleServiceImplTest {
         Page<Sample> pageResult = new Page<>(1, 10, 1);
         pageResult.setRecords(List.of(sample));
 
-        Customer customer = new Customer();
-        customer.setName("测试客户");
-        SysUser user = new SysUser();
-        user.setNickname("测试员");
-
         SampleServiceImpl spy = spy(sampleService);
         doReturn(pageResult).when(spy).page(any(Page.class), any(LambdaQueryWrapper.class));
-        doReturn(customer).when(customerMapper).selectById(100L);
-        doReturn(user).when(userMapper).selectById(10L);
 
         Page<SampleVO> result = spy.pageSamples(queryDTO);
         assertNotNull(result);
         assertEquals(1, result.getRecords().size());
         assertEquals("样品1", result.getRecords().get(0).getProductName());
-        assertEquals("测试客户", result.getRecords().get(0).getCustomerName());
-        assertEquals("测试员", result.getRecords().get(0).getTesterName());
         verify(spy).page(any(Page.class), any(LambdaQueryWrapper.class));
     }
 

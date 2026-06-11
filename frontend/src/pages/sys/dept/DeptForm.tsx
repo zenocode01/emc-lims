@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Form, Input, Modal, Select, InputNumber, message, TreeSelect } from 'antd'
 import { sysDeptApi, type SysDeptVO } from '../../../api/sys'
 
@@ -17,15 +17,14 @@ export default function DeptForm({
 }: DeptFormProps) {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
-  const [deptOptions, setDeptOptions] = useState<{ label: string; value: number }[]>([])
+  const [deptTree, setDeptTree] = useState<SysDeptVO[]>([])
 
   useEffect(() => {
     if (!open) return
     const load = async () => {
       try {
         const tree = await sysDeptApi.tree()
-        const flat = flattenTree(tree)
-        setDeptOptions([{ label: '顶级部门', value: 0 }, ...flat])
+        setDeptTree(tree)
         if (data) {
           form.setFieldsValue({
             name: data.name,
@@ -53,6 +52,12 @@ export default function DeptForm({
     }
     load()
   }, [open, data, form])
+
+  const deptOptions = useMemo(() => {
+    if (deptTree.length === 0) return [{ label: '顶级部门', value: 0 }]
+    const flat = flattenTree(deptTree)
+    return [{ label: '顶级部门', value: 0 }, ...flat]
+  }, [deptTree])
 
   const flattenTree = (nodes: SysDeptVO[], prefix = ''): { label: string; value: number }[] => {
     let result: { label: string; value: number }[] = []

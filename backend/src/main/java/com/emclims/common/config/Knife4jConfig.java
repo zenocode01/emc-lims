@@ -94,6 +94,17 @@ public class Knife4jConfig {
     }
 
     /**
+     * 样品管理 API 分组
+     */
+    @Bean
+    public GroupedOpenApi sampleApi() {
+        return GroupedOpenApi.builder()
+                .group("样品管理")
+                .packagesToScan("com.emclims.module.sample")
+                .build();
+    }
+
+    /**
      * 全部 API（默认）
      * 使用 builder 替代 @Deprecated 的 addGroupedOpenApi
      */

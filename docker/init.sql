@@ -242,6 +242,27 @@ CREATE TABLE sample_log (
 
 COMMENT ON TABLE sample_log IS '样品流转日志表';
 
+-- 留样记录表
+CREATE TABLE sample_retention (
+    id                 BIGINT PRIMARY KEY,
+    sample_id          BIGINT NOT NULL,
+    retention_date     DATE NOT NULL,
+    storage_location   VARCHAR(200),
+    status             VARCHAR(20) DEFAULT 'retained',
+    disposition_date   DATE,
+    disposition_method VARCHAR(100),
+    disposition_person BIGINT,
+    create_time        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    create_by          BIGINT,
+    update_by          BIGINT,
+    deleted            SMALLINT DEFAULT 0,
+    remark             VARCHAR(500)
+);
+
+COMMENT ON TABLE sample_retention IS '留样记录表';
+COMMENT ON COLUMN sample_retention.status IS '状态：retained-留样中, disposed-已处置, returned-已归还';
+
 -- ============================================
 -- 测试管理模块
 -- ============================================

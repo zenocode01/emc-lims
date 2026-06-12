@@ -8,6 +8,7 @@ import {
   UserOutlined,
   MenuUnfoldOutlined,
   ApartmentOutlined,
+  BarChartOutlined,
   FileTextOutlined, ExperimentOutlined, FileDoneOutlined, ToolOutlined, ProfileOutlined, ReadOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -15,6 +16,7 @@ import CustomerPage from './pages/customer'
 import LoginPage from './pages/login'
 import DashboardPage from './pages/dashboard'
 import NumberingRulePage from './pages/numbering-rule'
+import StatisticsPage from './pages/statistics'
 import SamplePage from './pages/sample'
 import ReportPage from './pages/report'
 import TestPlanPage from './pages/test-plan'
@@ -91,6 +93,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           { key: '/personnel', icon: <ProfileOutlined />, label: '人员管理' },
           { key: '/standard', icon: <ReadOutlined />, label: '标准管理' },
           { key: '/numbering-rule', icon: <SettingOutlined />, label: '编号规则' },
+          { key: '/statistics', icon: <BarChartOutlined />, label: '数据统计' },
         ]},
         { type: 'group' as const, label: '系统管理', children: [
           { key: '/sys/user', icon: <UserOutlined />, label: '用户管理' },
@@ -286,6 +289,16 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <NumberingRulePage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/statistics"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <StatisticsPage />
               </AppLayout>
             </ProtectedRoute>
           }

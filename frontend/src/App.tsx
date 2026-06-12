@@ -8,6 +8,7 @@ import {
   UserOutlined,
   MenuUnfoldOutlined,
   ApartmentOutlined,
+  FileTextOutlined, ExperimentOutlined, FileDoneOutlined, ToolOutlined, ProfileOutlined, ReadOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 import CustomerPage from './pages/customer'
@@ -21,9 +22,42 @@ import UserPage from './pages/sys/user'
 import RolePage from './pages/sys/role'
 import MenuPage from './pages/sys/menu'
 import DeptPage from './pages/sys/dept'
-import { FileTextOutlined, ExperimentOutlined, FileDoneOutlined, ToolOutlined, ProfileOutlined, ReadOutlined } from '@ant-design/icons'
+import { menuApi, MenuNode } from './api/menu'
+import type { MenuProps } from 'antd'
 
 const { Header, Sider, Content } = Layout
+
+/**
+ * 图标映射
+ */
+const iconMap: Record<string, React.ReactNode> = {
+  'HomeOutlined': <HomeOutlined />,
+  'TeamOutlined': <TeamOutlined />,
+  'FileTextOutlined': <FileTextOutlined />,
+  'ExperimentOutlined': <ExperimentOutlined />,
+  'FileDoneOutlined': <FileDoneOutlined />,
+  'ToolOutlined': <ToolOutlined />,
+  'ProfileOutlined': <ProfileOutlined />,
+  'ReadOutlined': <ReadOutlined />,
+  'SettingOutlined': <SettingOutlined />,
+  'UserOutlined': <UserOutlined />,
+  'MenuUnfoldOutlined': <MenuUnfoldOutlined />,
+  'ApartmentOutlined': <ApartmentOutlined />,
+}
+
+/**
+ * 将后端菜单树转换为 Ant Design Menu 格式
+ */
+function convertMenuNodesToItems(nodes: MenuNode[]): MenuProps['items'] {
+  if (!nodes || nodes.length === 0) return []
+  
+  return nodes.map(node => ({
+    key: node.path || `/${node.id}`,
+    label: node.menuName,
+    icon: node.icon ? iconMap[node.icon] : undefined,
+    children: node.children && node.children.length > 0 ? convertMenuNodesToItems(node.children) : undefined,
+  }))
+}
 
 /**
  * 布局组件
@@ -32,88 +66,41 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { token } = theme.useToken()
+  
+  const [menuItems, setMenuItems] = useState<MenuProps['items']>([])
 
-  const menuItems = [
-    {
-      key: '/',
-      icon: <HomeOutlined />,
-      label: '首页',
-    },
-    {
-      type: 'group' as const,
-      label: '业务管理',
-      icon: <ApartmentOutlined />,
-      children: [
-        {
-          key: '/customer',
-          icon: <TeamOutlined />,
-          label: '客户管理',
-        },
-        {
-          key: '/sample',
-          icon: <FileTextOutlined />,
-          label: '样品管理',
-        },
-        {
-          key: '/test-plan',
-          icon: <ExperimentOutlined />,
-          label: '测试计划',
-        },
-        {
-          key: '/report',
-          icon: <FileDoneOutlined />,
-          label: '报告管理',
-        },
-        {
-          key: '/equipment',
-          icon: <ToolOutlined />,
-          label: '设备管理',
-        },
-        {
-          key: '/personnel',
-          icon: <ProfileOutlined />,
-          label: '人员管理',
-        },
-        {
-          key: '/standard',
-          icon: <ReadOutlined />,
-          label: '标准管理',
-        },
-        {
-          key: '/numbering-rule',
-          icon: <SettingOutlined />,
-          label: '编号规则',
-        },
-      ],
-    },
-    {
-      type: 'group' as const,
-      label: '系统管理',
-      icon: <ApartmentOutlined />,
-      children: [
-        {
-          key: '/sys/user',
-          icon: <UserOutlined />,
-          label: '用户管理',
-        },
-        {
-          key: '/sys/role',
-          icon: <SettingOutlined />,
-          label: '角色管理',
-        },
-        {
-          key: '/sys/menu',
-          icon: <MenuUnfoldOutlined />,
-          label: '菜单管理',
-        },
-        {
-          key: '/sys/dept',
-          icon: <ApartmentOutlined />,
-          label: '部门管理',
-        },
-      ],
-    },
-  ]
+  useEffect(() => {
+    // 从后端加载动态菜单
+    menuApi.getUserMenus().then(menus => {
+      const items = convertMenuNodesToItems(menus)
+      // 添加首页菜单项
+      setMenuItems([
+        { key: '/', icon: <HomeOutlined />, label: '首页' },
+        ...(items.length > 0 ? [{ type: 'group' as const, label: '业务管理', children: items }] : []),
+      ])
+    }).catch(() => {
+      // 加载失败时使用默认菜单
+      setMenuItems([
+        { key: '/', icon: <HomeOutlined />, label: '首页' },
+        { type: 'group' as const, label: '业务管理', children: [
+          { key: '/customer', icon: <TeamOutlined />, label: '客户管理' },
+          { key: '/sample', icon: <FileTextOutlined />, label: '样品管理' },
+          { key: '/test-plan', icon: <ExperimentOutlined />, label: '测试计划' },
+          { key: '/report', icon: <FileDoneOutlined />, label: '报告管理' },
+          { key: '/equipment', icon: <ToolOutlined />, label: '设备管理' },
+          { key: '/personnel', icon: <ProfileOutlined />, label: '人员管理' },
+          { key: '/standard', icon: <ReadOutlined />, label: '标准管理' },
+          { key: '/numbering-rule', icon: <SettingOutlined />, label: '编号规则' },
+        ]},
+        { type: 'group' as const, label: '系统管理', children: [
+          { key: '/sys/user', icon: <UserOutlined />, label: '用户管理' },
+          { key: '/sys/role', icon: <SettingOutlined />, label: '角色管理' },
+          { key: '/sys/menu', icon: <MenuUnfoldOutlined />, label: '菜单管理' },
+          { key: '/sys/dept', icon: <ApartmentOutlined />, label: '部门管理' },
+        ]},
+      ])
+    })
+  }, [])
 
   return (
     <Layout style={{ minHeight: '100vh' }}>

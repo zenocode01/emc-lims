@@ -6,10 +6,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,12 +25,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
     private final SysMenuMapper menuMapper;
     private final DataPermissionLoader dataPermissionLoader;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private static final String PERMISSIONS_CACHE_KEY_PREFIX = "user:permissions:";
+    private static final Duration PERMISSIONS_CACHE_TTL = Duration.ofMinutes(10);
 
     public JwtAuthenticationFilter(JwtUtils jwtUtils, SysMenuMapper menuMapper,
-                                   DataPermissionLoader dataPermissionLoader) {
+                                   DataPermissionLoader dataPermissionLoader,
+                                   RedisTemplate<String, Object> redisTemplate) {
         this.jwtUtils = jwtUtils;
         this.menuMapper = menuMapper;
         this.dataPermissionLoader = dataPermissionLoader;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -46,8 +54,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             request.setAttribute("userId", userId);
             request.setAttribute("username", username);
 
-            // 加载用户权限列表，供 PermissionInterceptor 使用
-            List<String> permissions = menuMapper.selectPermissionsByUserId(userId);
+            // 从 Redis 缓存加载用户权限列表，供 PermissionInterceptor 使用
+            String cacheKey = PERMISSIONS_CACHE_KEY_PREFIX + userId;
+            List<String> permissions = (List<String>) redisTemplate.opsForValue().get(cacheKey);
+
+            if (permissions == null) {
+                // 缓存未命中，查询数据库
+                permissions = menuMapper.selectPermissionsByUserId(userId);
+                // 写入缓存，TTL 10 分钟
+                if (permissions != null) {
+                    redisTemplate.opsForValue().set(cacheKey, permissions, PERMISSIONS_CACHE_TTL);
+                }
+            }
             request.setAttribute("permissions", permissions);
 
             // 加载数据权限上下文（部门隔离）

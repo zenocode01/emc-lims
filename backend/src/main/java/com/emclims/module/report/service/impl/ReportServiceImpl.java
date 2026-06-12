@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.emclims.common.exception.BusinessException;
 import com.emclims.common.numbering.NumberingRuleEngine;
 import com.emclims.common.security.SecurityUtils;
+import com.emclims.common.util.ConvertUtils;
 import com.emclims.module.customer.entity.Customer;
 import com.emclims.module.customer.mapper.CustomerMapper;
 import com.emclims.module.report.dto.ReportDTO;
@@ -113,12 +114,7 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
                 : userMapper.selectBatchIds(userIds).stream()
                 .collect(Collectors.toMap(SysUser::getId, u -> u));
 
-        List<ReportVO> voList = reportPage.getRecords().stream()
-                .map(r -> convertToVO(r, customerMap, sampleMap, userMap))
-                .collect(Collectors.toList());
-
-        Page<ReportVO> result = new Page<>(reportPage.getCurrent(), reportPage.getSize(), reportPage.getTotal());
-        result.setRecords(voList);
+        Page<ReportVO> result = ConvertUtils.toPage(reportPage, r -> convertToVO(r, customerMap, sampleMap, userMap));
         return result;
     }
 
@@ -444,8 +440,7 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
                 : userMapper.selectBatchIds(userIds).stream()
                 .collect(Collectors.toMap(SysUser::getId, u -> u));
 
-        return reports.stream().map(r -> convertToExportVO(r, sampleMap, customerMap, userMap))
-                .collect(Collectors.toList());
+        return ConvertUtils.toList(reports, r -> convertToExportVO(r, sampleMap, customerMap, userMap));
     }
 
     /**

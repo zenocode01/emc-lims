@@ -26,6 +26,7 @@
         <hutool.version>5.8.23</hutool.version>
         <easyexcel.version>3.3.3</easyexcel.version>
         <poi.version>5.2.5</poi.version>
+        <docx4j.version>11.4.9</docx4j.version>
         <itext.version>7.2.5</itext.version>
         <lombok.version>1.18.30</lombok.version>
     </properties>
@@ -128,6 +129,13 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.5</version>
+        </dependency>
+
+        <!-- Docx4j (Word 模板引擎) -->
+        <dependency>
+            <groupId>org.docx4j</groupId>
+            <artifactId>docx4j-JAXB-ReferenceImpl</artifactId>
+            <version>${docx4j.version}</version>
         </dependency>
 
         <!-- iText (PDF) -->

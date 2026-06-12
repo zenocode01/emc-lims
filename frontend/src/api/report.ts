@@ -68,6 +68,46 @@ export interface PageResult<T> {
   pages: number
 }
 
+/** 报告模板查询参数 */
+export interface ReportTemplateQuery {
+  keyword?: string
+  templateType?: string
+  productCategory?: string
+  status?: number
+  pageNum?: number
+  pageSize?: number
+}
+
+/** 报告模板 DTO */
+export interface ReportTemplateDTO {
+  id?: number
+  templateName: string
+  templateCode: string
+  templateType?: string
+  productCategory?: string
+  templateContent?: string
+  previewUrl?: string
+  status: number
+  remark?: string
+}
+
+/** 报告模板 VO */
+export interface ReportTemplateVO {
+  id: number
+  templateName: string
+  templateCode: string
+  templateType?: string
+  templateTypeName?: string
+  productCategory?: string
+  status: number
+  statusName?: string
+  templateContent?: string
+  previewUrl?: string
+  remark?: string
+  createTime?: string
+  updateTime?: string
+}
+
 /** 报告 API */
 export const reportApi = {
   /** 分页查询报告列表 */
@@ -109,6 +149,37 @@ export const reportApi = {
   /** 导出报告 */
   export: (params: ReportQuery) =>
     request.get<any, Blob>('/report/export', { params, responseType: 'blob' }),
+}
+
+/** 报告模板 API */
+export const reportTemplateApi = {
+  /** 分页查询报告模板列表 */
+  page: (params: ReportTemplateQuery) =>
+    request.get<any, PageResult<ReportTemplateVO>>('/report/template/page', { params }),
+
+  /** 获取报告模板详情 */
+  detail: (id: number) =>
+    request.get<any, ReportTemplateVO>(`/report/template/${id}`),
+
+  /** 创建报告模板 */
+  create: (data: ReportTemplateDTO) =>
+    request.post<any, void>('/report/template', data),
+
+  /** 更新报告模板 */
+  update: (data: ReportTemplateDTO) =>
+    request.put<any, void>('/report/template', data),
+
+  /** 删除报告模板 */
+  delete: (id: number) =>
+    request.delete<any, void>(`/report/template/${id}`),
+
+  /** 批量删除报告模板 */
+  deleteBatch: (ids: number[]) =>
+    request.delete<any, void>(`/report/template/${ids.join(',')}`),
+
+  /** 更新报告模板状态 */
+  updateStatus: (id: number, status: number) =>
+    request.put<any, void>(`/report/template/${id}/status`, null, { params: { status } }),
 }
 
 /** 报告状态选项 */

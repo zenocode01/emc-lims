@@ -391,6 +391,36 @@ CREATE TABLE report_audit_log (
 COMMENT ON TABLE report_audit_log IS '报告审核日志表';
 COMMENT ON COLUMN report_audit_log.action IS '操作：create-创建，review-审核，approve-批准，reject-打回';
 
+-- 报告模板表
+CREATE TABLE report_template (
+    id              BIGINT PRIMARY KEY,
+    template_name   VARCHAR(200) NOT NULL,
+    template_code   VARCHAR(50) NOT NULL UNIQUE,
+    template_type   VARCHAR(20),
+    product_category VARCHAR(50),
+    template_content TEXT,
+    preview_url     VARCHAR(500),
+    status          INT DEFAULT 1,
+    remark          TEXT,
+    sort            INT DEFAULT 0,
+    create_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    create_by       BIGINT,
+    update_by       BIGINT
+);
+
+COMMENT ON TABLE report_template IS '报告模板表';
+COMMENT ON COLUMN report_template.template_name IS '模板名称';
+COMMENT ON COLUMN report_template.template_code IS '模板编码';
+COMMENT ON COLUMN report_template.template_type IS '模板类型：emission-发射，immunity-抗扰度，general-通用';
+COMMENT ON COLUMN report_template.product_category IS '适用产品类别：ITE/Audio/Industrial/Medical/Auto';
+COMMENT ON COLUMN report_template.template_content IS '模板内容（JSON 格式）';
+COMMENT ON COLUMN report_template.preview_url IS '模板预览图 URL';
+COMMENT ON COLUMN report_template.status IS '状态：0-停用，1-启用';
+
+CREATE INDEX idx_template_type ON report_template(template_type);
+CREATE INDEX idx_template_status ON report_template(status);
+
 -- ============================================
 -- 设备管理模块
 -- ============================================

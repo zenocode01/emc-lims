@@ -3,12 +3,14 @@ package com.emclims;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * EMC LIMS 启动类
  * 电磁兼容实验室信息管理系统
  */
 @SpringBootApplication
+@EnableScheduling
 @MapperScan("com.emclims.module.*.mapper")
 public class EmcLimsApplication {
 

@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react'
-import { Button, Space, Modal, message } from 'antd'
-import { PlusOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
+import { Button, Space, Modal, message, Card } from 'antd'
+import { PlusOutlined, DeleteOutlined, DownloadOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
 import type { ProColumns, ActionType } from '@ant-design/pro-components'
 import { ProTable } from '@ant-design/pro-components'
 import { standardApi, type StandardVO, type StandardQuery } from '../../api/standard'
+import { downloadBlob } from '../../utils/download'
 import StandardForm from './StandardForm'
 
 /**
@@ -54,6 +55,17 @@ export default function StandardPage() {
     setFormOpen(false)
     setFormData(undefined)
     actionRef.current?.reload()
+  }
+
+  /** 导出 */
+  const handleExport = async () => {
+    try {
+      const res = await standardApi.export({})
+      downloadBlob(res, '标准列表.xlsx')
+      message.success('导出成功')
+    } catch {
+      // error handled by interceptor
+    }
   }
 
   const columns: ProColumns<StandardVO>[] = [
@@ -165,6 +177,13 @@ export default function StandardPage() {
         actions: [
           <Button key="add" type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
             新增标准
+          </Button>,
+          <Button
+            key="export"
+            icon={<DownloadOutlined />}
+            onClick={handleExport}
+          >
+            导出Excel
           </Button>,
           <Button
             key="delete"

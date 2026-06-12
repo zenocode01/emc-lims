@@ -12,6 +12,7 @@ import com.emclims.module.standard.enums.StandardStatusEnum;
 import com.emclims.module.standard.enums.StandardTypeEnum;
 import com.emclims.module.standard.mapper.StandardMapper;
 import com.emclims.module.standard.service.StandardService;
+import com.emclims.module.standard.vo.StandardExportVO;
 import com.emclims.module.standard.vo.StandardVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -199,5 +200,55 @@ public class StandardServiceImpl extends ServiceImpl<StandardMapper, Standard> i
             throw new BusinessException("请选择要删除的标准");
         }
         this.removeByIds(ids);
+    }
+
+    /**
+     * 导出标准列表
+     */
+    @Override
+    public List<StandardExportVO> exportStandards(StandardQueryDTO queryDTO) {
+        LambdaQueryWrapper<Standard> wrapper = new LambdaQueryWrapper<>();
+
+        // 关键字搜索
+        wrapper.like(StrUtil.isNotBlank(queryDTO.getKeyword()),
+                Standard::getCode, queryDTO.getKeyword())
+                .or()
+                .like(StrUtil.isNotBlank(queryDTO.getKeyword()),
+                        Standard::getName, queryDTO.getKeyword());
+
+        // 类型筛选
+        wrapper.eq(StrUtil.isNotBlank(queryDTO.getType()),
+                Standard::getType, queryDTO.getType());
+
+        // 状态筛选
+        wrapper.eq(StrUtil.isNotBlank(queryDTO.getStatus()),
+                Standard::getStatus, queryDTO.getStatus());
+
+        // 生效日期范围
+        wrapper.ge(queryDTO.getEffectiveDateStart() != null,
+                Standard::getEffectiveDate, queryDTO.getEffectiveDateStart())
+                .le(queryDTO.getEffectiveDateEnd() != null,
+                        Standard::getEffectiveDate, queryDTO.getEffectiveDateEnd());
+
+        // 按创建时间倒序
+        wrapper.orderByDesc(Standard::getCreateTime);
+
+        List<Standard> standards = this.list(wrapper);
+        return standards.stream().map(this::convertToExportVO).collect(Collectors.toList());
+    }
+
+    private StandardExportVO convertToExportVO(Standard standard) {
+        StandardExportVO vo = new StandardExportVO();
+        vo.setCode(standard.getCode());
+        vo.setName(standard.getName());
+        vo.setVersion(standard.getVersion());
+        vo.setIssuingOrg(standard.getIssuingOrg());
+        vo.setTypeName(TYPE_MAP.getOrDefault(standard.getType(), standard.getType()));
+        vo.setEffectiveDate(standard.getEffectiveDate());
+        vo.setExpiryDate(standard.getExpiryDate());
+        vo.setStatusName(STATUS_MAP.getOrDefault(standard.getStatus(), standard.getStatus()));
+        vo.setRemark(standard.getRemark());
+        vo.setCreateTime(standard.getCreateTime());
+        return vo;
     }
 }

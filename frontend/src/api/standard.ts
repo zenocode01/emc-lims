@@ -110,6 +110,10 @@ export const standardApi = {
   /** 批量删除标准 */
   deleteBatch: (ids: number[]) =>
     request.delete<any, void>('/standard', { data: ids }),
+
+  /** 导出标准列表 */
+  export: (params: StandardQuery) =>
+    request.get<any, Blob>('/standard/export', { params, responseType: 'blob' }),
 }
 
 /** 标准分类 API */

@@ -9,6 +9,7 @@ import com.emclims.module.standard.service.StandardService;
 import com.emclims.module.standard.vo.StandardVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -73,5 +74,17 @@ public class StandardController {
     public R<Void> delete(@RequestBody List<Long> ids) {
         standardService.deleteStandards(ids);
         return R.ok();
+    }
+
+    /**
+     * 导出标准列表
+     */
+    @Operation(summary = "导出标准列表")
+    @GetMapping("/export")
+    public void export(StandardQueryDTO queryDTO, HttpServletResponse response) throws java.io.IOException {
+        List<com.emclims.module.standard.vo.StandardExportVO> list = standardService.exportStandards(queryDTO);
+        com.alibaba.excel.EasyExcel.write(response.getOutputStream(), com.emclims.module.standard.vo.StandardExportVO.class)
+                .sheet("标准列表")
+                .doWrite(list);
     }
 }

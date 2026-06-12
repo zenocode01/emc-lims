@@ -593,6 +593,52 @@ INSERT INTO sys_numbering_rule (id, rule_code, rule_name, module_type, prefix, d
 (1, 'SAMPLE_DEFAULT', '样品编号规则', 'sample', 'EMC', 'yyyyMMdd', 4, '-', 1);
 COMMIT;
 
+-- 操作审计日志表
+CREATE TABLE operation_log (
+    id              BIGINT PRIMARY KEY,
+    operator_id     BIGINT,
+    operator_name   VARCHAR(100),
+    module          VARCHAR(50),
+    action          VARCHAR(50),
+    description     TEXT,
+    before_data     TEXT,
+    after_data      TEXT,
+    request_ip      VARCHAR(50),
+    request_url     VARCHAR(500),
+    request_method  VARCHAR(10),
+    request_params  TEXT,
+    response_code   INT DEFAULT 200,
+    response_time   BIGINT,
+    operation_time  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    remark          TEXT,
+    create_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    create_by       BIGINT,
+    update_by       BIGINT
+);
+
+COMMENT ON TABLE operation_log IS '操作审计日志表';
+COMMENT ON COLUMN operation_log.operator_id IS '操作人ID';
+COMMENT ON COLUMN operation_log.operator_name IS '操作人姓名';
+COMMENT ON COLUMN operation_log.module IS '操作模块：user-用户，role-角色，customer-客户，sample-样品等';
+COMMENT ON COLUMN operation_log.action IS '操作类型：create-新增，update-修改，delete-删除，export-导出等';
+COMMENT ON COLUMN operation_log.description IS '操作描述';
+COMMENT ON COLUMN operation_log.before_data IS '操作前数据（JSON 格式）';
+COMMENT ON COLUMN operation_log.after_data IS '操作后数据（JSON 格式）';
+COMMENT ON COLUMN operation_log.request_ip IS '请求 IP';
+COMMENT ON COLUMN operation_log.request_url IS '请求 URL';
+COMMENT ON COLUMN operation_log.request_method IS '请求方法';
+COMMENT ON COLUMN operation_log.request_params IS '请求参数（JSON 格式）';
+COMMENT ON COLUMN operation_log.response_code IS '响应状态码';
+COMMENT ON COLUMN operation_log.response_time IS '响应耗时（毫秒）';
+COMMENT ON COLUMN operation_log.operation_time IS '操作时间';
+
+-- 创建索引
+CREATE INDEX idx_op_log_operator_id ON operation_log(operator_id);
+CREATE INDEX idx_op_log_module ON operation_log(module);
+CREATE INDEX idx_op_log_action ON operation_log(action);
+CREATE INDEX idx_op_log_time ON operation_log(operation_time);
+
 -- 插入常用数据字典
 INSERT INTO sys_dict (id, type, code, value, label, sort) VALUES
 (1, 'sample_status', 'pending', 'pending', '待接收', 1),

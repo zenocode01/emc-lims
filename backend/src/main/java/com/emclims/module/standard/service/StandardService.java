@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.emclims.module.standard.dto.StandardDTO;
 import com.emclims.module.standard.dto.StandardQueryDTO;
 import com.emclims.module.standard.entity.Standard;
+import com.emclims.module.standard.vo.StandardExportVO;
 import com.emclims.module.standard.vo.StandardVO;
 
 import java.util.List;
@@ -50,4 +51,12 @@ public interface StandardService extends IService<Standard> {
      * @param ids 标准ID列表
      */
     void deleteStandards(List<Long> ids);
+
+    /**
+     * 导出标准列表
+     *
+     * @param queryDTO 查询条件
+     * @return 标准导出列表
+     */
+    List<StandardExportVO> exportStandards(StandardQueryDTO queryDTO);
 }

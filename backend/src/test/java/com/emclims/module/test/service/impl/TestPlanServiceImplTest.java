@@ -3,6 +3,7 @@ package com.emclims.module.test.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.emclims.common.exception.BusinessException;
+import com.emclims.common.numbering.NumberingRuleEngine;
 import com.emclims.module.customer.entity.Customer;
 import com.emclims.module.customer.mapper.CustomerMapper;
 import com.emclims.module.sample.entity.Sample;
@@ -52,6 +53,9 @@ class TestPlanServiceImplTest {
     @Mock
     private CustomerMapper customerMapper;
 
+    @Mock
+    private NumberingRuleEngine numberingRuleEngine;
+
     private TestPlanServiceImpl testPlanService;
 
     @BeforeEach
@@ -60,6 +64,7 @@ class TestPlanServiceImplTest {
         testPlanService = new TestPlanServiceImpl();
         testPlanService.sampleMapper = sampleMapper;
         testPlanService.customerMapper = customerMapper;
+        testPlanService.numberingRuleEngine = numberingRuleEngine;
 
         // 模拟 RequestContextHolder
         MockHttpServletRequest request = new MockHttpServletRequest();

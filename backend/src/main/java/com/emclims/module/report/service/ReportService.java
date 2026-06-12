@@ -65,4 +65,9 @@ public interface ReportService extends IService<Report> {
      * 导出报告列表
      */
     List<ReportExportVO> exportReports(ReportQueryDTO queryDTO);
+
+    /**
+     * 删除报告
+     */
+    void deleteReport(Long id);
 }

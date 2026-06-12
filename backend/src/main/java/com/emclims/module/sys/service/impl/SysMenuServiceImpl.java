@@ -31,14 +31,9 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     private final SysRoleMenuMapper roleMenuMapper;
 
-    @Autowired
-    public SysMenuServiceImpl(SysRoleMenuMapper roleMenuMapper) {
-        this.roleMenuMapper = roleMenuMapper;
-    }
-
     public SysMenuServiceImpl(SysMenuMapper mapper, SysRoleMenuMapper roleMenuMapper) {
-        this.roleMenuMapper = roleMenuMapper;
         this.baseMapper = mapper;
+        this.roleMenuMapper = roleMenuMapper;
     }
 
     @Override

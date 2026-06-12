@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.emclims.common.exception.BusinessException;
+import com.emclims.common.numbering.NumberingRuleEngine;
 import com.emclims.module.customer.entity.Customer;
 import com.emclims.module.customer.mapper.CustomerMapper;
 import com.emclims.module.sample.entity.Sample;
@@ -44,6 +45,9 @@ public class TestPlanServiceImpl extends ServiceImpl<TestPlanMapper, TestPlan> i
 
     @Autowired
     SysUserMapper sysUserMapper;
+
+    @Autowired
+    NumberingRuleEngine numberingRuleEngine;
 
     @Override
     public Page<TestPlanVO> pageTestPlans(Long sampleId, String status, Integer pageNum, Integer pageSize) {
@@ -254,9 +258,7 @@ public class TestPlanServiceImpl extends ServiceImpl<TestPlanMapper, TestPlan> i
      * 格式：TP-yyyyMMdd-xxxx
      */
     private String generatePlanNo() {
-        String dateStr = java.time.LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        // 简单随机后缀，实际项目中可使用编号规则引擎
-        String suffix = String.format("%04d", (int) (Math.random() * 10000));
-        return "TP-" + dateStr + "-" + suffix;
+        // 使用编号规则引擎生成测试计划编号，格式：TP-yyyyMMdd-xxxx
+        return numberingRuleEngine.generateNumber("TEST_PLAN_DEFAULT");
     }
 }

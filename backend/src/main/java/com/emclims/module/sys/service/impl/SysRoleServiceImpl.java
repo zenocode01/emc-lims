@@ -70,7 +70,13 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             throw new BusinessException("该角色已被用户关联，无法删除");
         }
 
+        // 删除角色菜单关联
+        roleMenuMapper.delete(new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getRoleId, id));
+        
+        // 删除角色
         this.removeById(id);
+        
+        log.info("删除角色成功，角色ID: {}", id);
     }
 
     @Override
@@ -88,7 +94,13 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             }
         }
 
+        // 删除角色菜单关联
+        roleMenuMapper.delete(new LambdaQueryWrapper<SysRoleMenu>().in(SysRoleMenu::getRoleId, ids));
+        
+        // 删除角色
         this.removeByIds(ids);
+        
+        log.info("批量删除角色成功，角色ID列表: {}", ids);
     }
 
     @Override

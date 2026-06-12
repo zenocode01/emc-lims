@@ -63,6 +63,13 @@ public class ReportController {
         return R.ok();
     }
 
+    @Operation(summary = "删除报告")
+    @DeleteMapping("/{id}")
+    public R<Void> delete(@PathVariable Long id) {
+        reportService.deleteReport(id);
+        return R.ok();
+    }
+
     @Operation(summary = "提交审核")
     @PostMapping("/{id}/submit")
     public R<Void> submit(@PathVariable Long id, @RequestBody(required = false) ReportAuditDTO auditDTO) {

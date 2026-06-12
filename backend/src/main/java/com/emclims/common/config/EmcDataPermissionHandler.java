@@ -7,9 +7,9 @@ import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -86,7 +86,11 @@ public class EmcDataPermissionHandler implements DataPermissionHandler {
                 deptExpression = new EqualsTo(new Column(deptColumn), new LongValue(deptId));
                 break;
             case 3:
-                // 3 - 本部门及子部门数据（简化处理）
+                // 3 - 本部门及子部门数据
+                // 由于 DataPermissionHandler 在 SQL 拼接阶段调用，无法直接查询数据库
+                // 采用简化实现：查询本部门数据
+                // 完整实现应在 DataPermissionLoader 中预先加载子部门 ID 列表并设置到 context
+                // 然后在 DataPermissionContext 中通过 getSubDeptIds() 获取
                 deptExpression = new EqualsTo(new Column(deptColumn), new LongValue(deptId));
                 break;
             case 4:

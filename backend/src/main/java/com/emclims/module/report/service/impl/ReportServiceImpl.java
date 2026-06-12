@@ -382,6 +382,20 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteReport(Long id) {
+        log.info("删除报告，报告ID: {}", id);
+
+        Report report = this.getById(id);
+        if (report == null) {
+            throw new BusinessException("报告不存在");
+        }
+
+        this.removeById(id);
+        log.info("删除报告成功，报告ID: {}", id);
+    }
+
+    @Override
     public List<ReportExportVO> exportReports(ReportQueryDTO queryDTO) {
         log.debug("导出报告列表，关键字: {}, 客户ID: {}, 状态: {}",
                 queryDTO.getKeyword(), queryDTO.getCustomerId(), queryDTO.getStatus());

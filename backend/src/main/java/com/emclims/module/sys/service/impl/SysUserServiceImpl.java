@@ -391,4 +391,31 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             vo.setRoleName(role.getRoleName());
         }
     }
+
+    @Override
+    public java.util.List<SysUserVO> listUsers() {
+        log.debug("获取所有用户列表");
+        List<SysUser> userList = this.list();
+
+        // 批量查询部门
+        List<Long> deptIds = userList.stream()
+                .map(SysUser::getDeptId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+        java.util.Map<Long, SysDept> deptMap = deptIds.isEmpty() ? java.util.Collections.emptyMap() :
+                deptMapper.selectBatchIds(deptIds).stream()
+                        .collect(Collectors.toMap(SysDept::getId, d -> d));
+
+        // 批量查询用户默认角色
+        java.util.Map<Long, SysRole> defaultRoleMap = buildDefaultRoleMapBatch(userList);
+
+        return userList.stream().map(user -> {
+            SysUserVO vo = new SysUserVO();
+            BeanUtils.copyProperties(user, vo);
+            populateDeptName(vo, user.getDeptId(), deptMap);
+            populateDefaultRole(vo, user.getId(), defaultRoleMap);
+            return vo;
+        }).collect(Collectors.toList());
+    }
 }

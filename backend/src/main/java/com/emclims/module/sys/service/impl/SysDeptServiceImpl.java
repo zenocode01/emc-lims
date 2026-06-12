@@ -138,4 +138,30 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
 
         return vo;
     }
+
+    @Override
+    public java.util.List<SysDeptVO> listDepts() {
+        log.debug("获取所有部门列表");
+        List<SysDept> deptList = this.list();
+
+        // 批量查询父部门
+        List<Long> parentIds = deptList.stream()
+                .map(SysDept::getParentId)
+                .filter(id -> id != null && id > 0L)
+                .distinct()
+                .collect(Collectors.toList());
+        java.util.Map<Long, SysDept> parentMap = parentIds.isEmpty() ? java.util.Collections.emptyMap() :
+                baseMapper.selectBatchIds(parentIds).stream()
+                        .collect(Collectors.toMap(SysDept::getId, d -> d));
+
+        return deptList.stream().map(dept -> {
+            SysDeptVO vo = new SysDeptVO();
+            BeanUtils.copyProperties(dept, vo);
+            if (dept.getParentId() != null && parentMap.containsKey(dept.getParentId())) {
+                vo.setParentName(parentMap.get(dept.getParentId()).getDeptName());
+            }
+            vo.setChildren(java.util.Collections.emptyList());
+            return vo;
+        }).collect(Collectors.toList());
+    }
 }

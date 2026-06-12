@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,11 +37,14 @@ class JwtAuthenticationFilterTest {
     @Mock
     private DataPermissionLoader dataPermissionLoader;
 
+    @Mock
+    private RedisTemplate<String, Object> redisTemplate;
+
     private JwtAuthenticationFilter filter;
 
     @BeforeEach
     void setUp() {
-        filter = new JwtAuthenticationFilter(jwtUtils, menuMapper, dataPermissionLoader);
+        filter = new JwtAuthenticationFilter(jwtUtils, menuMapper, dataPermissionLoader, redisTemplate);
     }
 
     // === extractToken 测试 ===
@@ -167,6 +171,7 @@ class JwtAuthenticationFilterTest {
         when(claims.get("username", String.class)).thenReturn("admin");
         when(jwtUtils.parseToken("valid-token")).thenReturn(claims);
         when(menuMapper.selectPermissionsByUserId(1L)).thenReturn(Arrays.asList("user:read", "user:write"));
+        when(redisTemplate.opsForValue()).thenReturn(mock(org.springframework.data.redis.core.ValueOperations.class));
 
         filter.doFilter(request, response, filterChain);
 
@@ -229,6 +234,7 @@ class JwtAuthenticationFilterTest {
         when(claims.get("username", String.class)).thenReturn("admin");
         when(jwtUtils.parseToken("valid-token")).thenReturn(claims);
         when(menuMapper.selectPermissionsByUserId(1L)).thenReturn(Collections.emptyList());
+        when(redisTemplate.opsForValue()).thenReturn(mock(org.springframework.data.redis.core.ValueOperations.class));
 
         filter.doFilter(request, response, filterChain);
 

@@ -10,6 +10,7 @@ import {
   FileTextOutlined,
   ExclamationCircleOutlined,
   DownloadOutlined,
+  EditOutlined,
 } from '@ant-design/icons'
 import type { ProColumns, ActionType } from '@ant-design/pro-components'
 import { ProTable } from '@ant-design/pro-components'
@@ -29,6 +30,7 @@ export default function ReportPage() {
   const actionRef = useRef<ActionType>(null)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [createOpen, setCreateOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
   const [formData, setFormData] = useState<ReportVO | undefined>(undefined)
   const [detailOpen, setDetailOpen] = useState(false)
   const [detailData, setDetailData] = useState<ReportVO | undefined>(undefined)
@@ -61,6 +63,31 @@ export default function ReportPage() {
     } catch {
       setDetailData(record)
       setDetailOpen(true)
+    }
+  }
+
+  /** 编辑报告 */
+  const handleEdit = async (record: ReportVO) => {
+    try {
+      const res = await reportApi.detail(record.id)
+      setFormData(res)
+      setEditOpen(true)
+    } catch {
+      setFormData(record)
+      setEditOpen(true)
+    }
+  }
+
+  /** 报告编辑提交 */
+  const handleEditSubmit = async (values: any) => {
+    try {
+      await reportApi.update({ ...values, id: formData!.id })
+      message.success('编辑成功')
+      setEditOpen(false)
+      setFormData(undefined)
+      actionRef.current?.reload()
+    } catch {
+      // error handled by interceptor
     }
   }
 
@@ -265,6 +292,9 @@ export default function ReportPage() {
           <a onClick={() => handleDetail(record)}>
             <EyeOutlined /> 详情
           </a>
+          <a onClick={() => handleEdit(record)}>
+            <EditOutlined /> 编辑
+          </a>
           <a onClick={() => handleLogs(record)}>
             <HistoryOutlined /> 日志
           </a>
@@ -433,6 +463,40 @@ export default function ReportPage() {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* 报告编辑抽屉 */}
+      <Drawer
+        title={`编辑报告 - ${formData?.reportNo || ''}`}
+        placement="right"
+        width={600}
+        open={editOpen}
+        onClose={() => { setEditOpen(false); setFormData(undefined) }}
+        extra={
+          <Button type="primary" onClick={handleEditSubmit} disabled={!formData}>
+            保存
+          </Button>
+        }
+      >
+        {formData && (
+          <Form layout="vertical" onFinish={handleEditSubmit} initialValues={formData}>
+            <Form.Item label="报告编号" name="reportNo" rules={[{ required: true }]}>
+              <Input readOnly />
+            </Form.Item>
+            <Form.Item label="样品编号" name="sampleNo">
+              <Input />
+            </Form.Item>
+            <Form.Item label="产品名称" name="productName">
+              <Input />
+            </Form.Item>
+            <Form.Item label="客户" name="customerName">
+              <Input />
+            </Form.Item>
+            <Form.Item label="备注" name="remark">
+              <Input.TextArea rows={3} />
+            </Form.Item>
+          </Form>
+        )}
+      </Drawer>
     </Card>
   )
 }

@@ -126,6 +126,13 @@ export default function DeptPage() {
             <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => handleAdd(0)}>
               新增根部门
             </Button>,
+            <Button
+              key="export"
+              icon={<DownloadOutlined />}
+              onClick={() => window.open('/api/sys/dept/export', '_blank')}
+            >
+              导出Excel
+            </Button>,
           ],
         }}
       />

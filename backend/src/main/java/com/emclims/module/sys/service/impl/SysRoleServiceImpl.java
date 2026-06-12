@@ -140,4 +140,10 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
                 .map(SysRoleMenu::getMenuId)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<SysRole> listRoles() {
+        log.debug("获取所有角色列表");
+        return this.list();
+    }
 }

@@ -53,4 +53,9 @@ public interface SysUserService extends IService<SysUser> {
      * 导出用户列表
      */
     java.util.List<com.emclims.module.sys.vo.SysUserExportVO> exportUsers(SysUserQueryDTO queryDTO);
+
+    /**
+     * 获取所有用户列表（不分页，包含VO）
+     */
+    java.util.List<SysUserVO> listUsers();
 }

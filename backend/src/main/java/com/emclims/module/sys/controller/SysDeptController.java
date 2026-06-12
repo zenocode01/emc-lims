@@ -77,4 +77,10 @@ public class SysDeptController {
                 .sheet("部门列表")
                 .doWrite(list);
     }
+
+    @Operation(summary = "获取所有部门列表")
+    @GetMapping("/all")
+    public R<List<SysDeptVO>> all() {
+        return R.ok(deptService.listDepts());
+    }
 }

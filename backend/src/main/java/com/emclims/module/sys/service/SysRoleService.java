@@ -50,4 +50,9 @@ public interface SysRoleService extends IService<SysRole> {
      * 根据角色ID获取菜单ID列表
      */
     List<Long> getMenuIdsByRoleId(Long roleId);
+
+    /**
+     * 获取所有角色列表
+     */
+    List<SysRole> listRoles();
 }

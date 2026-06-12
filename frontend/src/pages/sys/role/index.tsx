@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Button, Space, Tag, Modal, message, Switch, Card } from 'antd'
-import { PlusOutlined, DeleteOutlined, ExclamationCircleOutlined, SafetyOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined, ExclamationCircleOutlined, SafetyOutlined, DownloadOutlined } from '@ant-design/icons'
 import type { ProColumns, ActionType } from '@ant-design/pro-components'
 import { ProTable } from '@ant-design/pro-components'
 import { sysRoleApi, type SysRoleVO } from '../../../api/sys'
@@ -171,6 +171,13 @@ export default function RolePage() {
               onClick={() => handleDelete(selectedRowKeys as number[])}
             >
               批量删除
+            </Button>,
+            <Button
+              key="export"
+              icon={<DownloadOutlined />}
+              onClick={() => window.open('/api/sys/role/export', '_blank')}
+            >
+              导出Excel
             </Button>,
           ],
         }}

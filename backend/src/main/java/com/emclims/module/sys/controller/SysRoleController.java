@@ -88,4 +88,10 @@ public class SysRoleController {
     public R<List<Long>> getMenuIds(@PathVariable Long roleId) {
         return R.ok(roleService.getMenuIdsByRoleId(roleId));
     }
+
+    @Operation(summary = "获取所有角色列表")
+    @GetMapping("/all")
+    public R<List<SysRole>> all() {
+        return R.ok(roleService.listRoles());
+    }
 }

@@ -5,6 +5,7 @@ import type { ProColumns, ActionType } from '@ant-design/pro-components'
 import { ProTable } from '@ant-design/pro-components'
 import { sysUserApi, type SysUserVO, type SysUserQuery } from '../../../api/sys'
 import UserForm from './UserForm'
+import { DownloadOutlined } from '@ant-design/icons'
 
 export default function UserPage() {
   const actionRef = useRef<ActionType>(null)
@@ -167,6 +168,13 @@ export default function UserPage() {
               onClick={() => handleDelete(selectedRowKeys as number[])}
             >
               批量删除
+            </Button>,
+            <Button
+              key="export"
+              icon={<DownloadOutlined />}
+              onClick={() => window.open('/api/sys/user/export', '_blank')}
+            >
+              导出Excel
             </Button>,
           ],
         }}

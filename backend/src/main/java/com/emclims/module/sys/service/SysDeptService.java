@@ -41,4 +41,9 @@ public interface SysDeptService extends IService<SysDept> {
      * 导出部门列表
      */
     List<SysDeptExportVO> exportDepts();
+
+    /**
+     * 获取所有部门列表（不分页，包含VO）
+     */
+    List<SysDeptVO> listDepts();
 }

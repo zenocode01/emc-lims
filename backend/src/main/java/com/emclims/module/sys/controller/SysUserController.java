@@ -101,4 +101,10 @@ public class SysUserController {
                 .replaceAll("\\+", "%20");
         EasyExcel.write(response.getOutputStream(), SysUserExportVO.class).sheet("用户列表").doWrite(list);
     }
+
+    @Operation(summary = "获取所有用户列表")
+    @GetMapping("/all")
+    public R<List<SysUserVO>> all() {
+        return R.ok(userService.listUsers());
+    }
 }

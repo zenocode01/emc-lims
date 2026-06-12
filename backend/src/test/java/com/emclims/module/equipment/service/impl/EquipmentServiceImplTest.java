@@ -316,13 +316,9 @@ class EquipmentServiceImplTest {
         dto.setCalibrationDue(LocalDate.of(2026, 1, 1));
         dto.setRemark("高精度频谱分析仪");
 
-        Equipment equipment = new Equipment();
-        equipment.setId(1L);
-        equipment.setEquipmentNo("EQ-20250101-0001");
-        equipment.setStatus("normal");
-
         EquipmentServiceImpl spy = spy(equipmentService);
-        doReturn(equipment).when(spy).save(any(Equipment.class));
+        doReturn(null).when(spy).getOne(any(LambdaQueryWrapper.class), any(Boolean.class));
+        doReturn(true).when(spy).save(any(Equipment.class));
 
         assertDoesNotThrow(() -> spy.addEquipment(dto));
     }
@@ -336,13 +332,9 @@ class EquipmentServiceImplTest {
         dto.setName("新设备");
         dto.setModel("Model-X");
 
-        Equipment equipment = new Equipment();
-        equipment.setId(1L);
-        equipment.setEquipmentNo("EQ-20250101-0001");
-        equipment.setStatus("normal");
-
         EquipmentServiceImpl spy = spy(equipmentService);
-        doReturn(equipment).when(spy).save(any(Equipment.class));
+        doReturn(null).when(spy).getOne(any(LambdaQueryWrapper.class), any(Boolean.class));
+        doReturn(true).when(spy).save(any(Equipment.class));
 
         assertDoesNotThrow(() -> spy.addEquipment(dto));
     }
@@ -357,13 +349,9 @@ class EquipmentServiceImplTest {
         dto.setModel("Model-Y");
         dto.setStatus("maintenance");
 
-        Equipment equipment = new Equipment();
-        equipment.setId(2L);
-        equipment.setEquipmentNo("EQ-20250101-0002");
-        equipment.setStatus("maintenance");
-
         EquipmentServiceImpl spy = spy(equipmentService);
-        doReturn(equipment).when(spy).save(any(Equipment.class));
+        doReturn(null).when(spy).getOne(any(LambdaQueryWrapper.class), any(Boolean.class));
+        doReturn(true).when(spy).save(any(Equipment.class));
 
         assertDoesNotThrow(() -> spy.addEquipment(dto));
     }
@@ -703,7 +691,7 @@ class EquipmentServiceImplTest {
         existingCalibration.setCalibrationOrg("原计量院");
 
         doReturn(existingCalibration).when(calibrationMapper).selectById(1L);
-        doReturn(true).when(calibrationMapper).updateById(any(EquipmentCalibration.class));
+        doReturn(1).when(calibrationMapper).updateById(any(EquipmentCalibration.class));
 
         EquipmentServiceImpl spy = spy(equipmentService);
 

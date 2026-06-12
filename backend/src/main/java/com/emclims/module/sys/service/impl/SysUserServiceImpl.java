@@ -26,6 +26,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -81,8 +83,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 deptMapper.selectBatchIds(deptIds).stream()
                         .collect(Collectors.toMap(SysDept::getId, d -> d));
 
-        // 批量查询用户默认角色
-        java.util.Map<Long, SysRole> defaultRoleMap = buildDefaultRoleMap(userPage.getRecords());
+        // 批量查询用户默认角色，避免 N+1
+        java.util.Map<Long, SysRole> defaultRoleMap = buildDefaultRoleMapBatch(userPage.getRecords());
 
         // 填充部门名和角色列表
         List<SysUserVO> voList = userPage.getRecords().stream().map(user -> {
@@ -243,19 +245,38 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
-     * 构建用户默认角色映射
+     * 批量构建用户默认角色映射，避免 N+1 查询
      */
-    private java.util.Map<Long, SysRole> buildDefaultRoleMap(List<SysUser> users) {
+    private java.util.Map<Long, SysRole> buildDefaultRoleMapBatch(List<SysUser> users) {
+        if (users == null || users.isEmpty()) {
+            return new java.util.HashMap<>();
+        }
+        
+        // 一次性查询所有用户的角色关系
+        List<Long> userIds = users.stream().map(SysUser::getId).collect(Collectors.toList());
+        List<SysUserRole> userRoles = userRoleMapper.selectList(
+                new LambdaQueryWrapper<SysUserRole>().in(SysUserRole::getUserId, userIds)
+        );
+        
+        // 收集所有角色 ID
+        List<Long> roleIds = userRoles.stream()
+                .map(SysUserRole::getRoleId)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        // 一次性查询所有角色
+        List<SysRole> roles = roleIds.isEmpty() ? List.of() : roleMapper.selectBatchIds(roleIds);
+        java.util.Map<Long, SysRole> roleMap = roles.stream()
+                .collect(Collectors.toMap(SysRole::getId, Function.identity()));
+        
+        // 构建用户 ID -> 角色映射（取第一个角色作为默认角色）
         java.util.Map<Long, SysRole> defaultRoleMap = new java.util.HashMap<>();
-        for (SysUser user : users) {
-            List<Long> roleIds = userRoleMapper.selectRoleIdsByUserId(user.getId());
-            if (roleIds != null && !roleIds.isEmpty()) {
-                SysRole role = roleMapper.selectById(roleIds.get(0));
-                if (role != null) {
-                    defaultRoleMap.put(user.getId(), role);
-                }
+        for (SysUserRole userRole : userRoles) {
+            if (!defaultRoleMap.containsKey(userRole.getUserId()) && roleMap.containsKey(userRole.getRoleId())) {
+                defaultRoleMap.put(userRole.getUserId(), roleMap.get(userRole.getRoleId()));
             }
         }
+        
         return defaultRoleMap;
     }
 
@@ -307,8 +328,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 deptMapper.selectBatchIds(deptIds).stream()
                         .collect(Collectors.toMap(SysDept::getId, d -> d));
 
-        // 批量查询用户默认角色
-        java.util.Map<Long, SysRole> defaultRoleMap = buildDefaultRoleMap(userList);
+        // 批量查询用户默认角色，避免 N+1
+        java.util.Map<Long, SysRole> defaultRoleMap = buildDefaultRoleMapBatch(userList);
 
         // 转换为导出VO
         return userList.stream().map(user -> {

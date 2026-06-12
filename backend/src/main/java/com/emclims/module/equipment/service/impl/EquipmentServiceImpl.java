@@ -34,6 +34,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -201,8 +203,20 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         Page<EquipmentCalibration> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
         Page<EquipmentCalibration> resultPage = calibrationMapper.selectPage(page, wrapper);
 
+        // 批量查询设备信息，避免 N+1
+        List<Long> equipmentIds = resultPage.getRecords().stream()
+                .map(EquipmentCalibration::getEquipmentId)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<Long, Equipment> equipmentMap = equipmentIds.isEmpty()
+                ? Map.of()
+                : this.listByIds(equipmentIds).stream()
+                .collect(Collectors.toMap(Equipment::getId, Function.identity()));
+
         // 转换为 VO
-        List<CalibrationVO> voList = resultPage.getRecords().stream().map(this::convertCalibrationToVO).collect(Collectors.toList());
+        List<CalibrationVO> voList = resultPage.getRecords().stream()
+                .map(calibration -> convertCalibrationToVO(calibration, equipmentMap))
+                .collect(Collectors.toList());
         Page<CalibrationVO> result = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
         result.setRecords(voList);
         return result;
@@ -255,8 +269,14 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
                 .orderByDesc(EquipmentCalibration::getCalibrationDate);
 
         List<EquipmentCalibration> calibrationList = calibrationMapper.selectList(wrapper);
+        // 单条查询场景，直接查询设备信息
+        Map<Long, Equipment> equipmentMap = calibrationList.isEmpty()
+                ? Map.of()
+                : this.listByIds(calibrationList.stream().map(EquipmentCalibration::getEquipmentId).distinct().collect(Collectors.toList()))
+                .stream()
+                .collect(Collectors.toMap(Equipment::getId, Function.identity()));
         return calibrationList.stream()
-                .map(this::convertCalibrationToVO)
+                .map(calibration -> convertCalibrationToVO(calibration, equipmentMap))
                 .collect(Collectors.toList());
     }
 
@@ -293,8 +313,20 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         Page<EquipmentUsage> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
         Page<EquipmentUsage> resultPage = usageMapper.selectPage(page, wrapper);
 
+        // 批量查询设备信息，避免 N+1
+        List<Long> usageEquipmentIds = resultPage.getRecords().stream()
+                .map(EquipmentUsage::getEquipmentId)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<Long, Equipment> usageEquipmentMap = usageEquipmentIds.isEmpty()
+                ? Map.of()
+                : this.listByIds(usageEquipmentIds).stream()
+                .collect(Collectors.toMap(Equipment::getId, Function.identity()));
+
         // 转换为 VO
-        List<UsageVO> voList = resultPage.getRecords().stream().map(this::convertUsageToVO).collect(Collectors.toList());
+        List<UsageVO> voList = resultPage.getRecords().stream()
+                .map(usage -> convertUsageToVO(usage, usageEquipmentMap))
+                .collect(Collectors.toList());
         Page<UsageVO> result = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
         result.setRecords(voList);
         return result;
@@ -356,13 +388,13 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
     /**
      * 将校准记录实体转换为 VO
      */
-    private CalibrationVO convertCalibrationToVO(EquipmentCalibration calibration) {
+    private CalibrationVO convertCalibrationToVO(EquipmentCalibration calibration, Map<Long, Equipment> equipmentMap) {
         CalibrationVO vo = new CalibrationVO();
         BeanUtils.copyProperties(calibration, vo);
 
-        // 关联查询设备信息
-        Equipment equipment = this.getById(calibration.getEquipmentId());
-        if (equipment != null) {
+        // 从批量查询结果中获取设备信息
+        if (equipmentMap != null && equipmentMap.containsKey(calibration.getEquipmentId())) {
+            Equipment equipment = equipmentMap.get(calibration.getEquipmentId());
             vo.setEquipmentNo(equipment.getEquipmentNo());
             vo.setEquipmentName(equipment.getName());
         }
@@ -373,14 +405,14 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
     /**
      * 将使用记录实体转换为 VO
      */
-    private UsageVO convertUsageToVO(EquipmentUsage usage) {
+    private UsageVO convertUsageToVO(EquipmentUsage usage, Map<Long, Equipment> equipmentMap) {
         UsageVO vo = new UsageVO();
         BeanUtils.copyProperties(usage, vo);
         vo.setStatusName(USAGE_STATUS_NAME_MAP.getOrDefault(usage.getStatus(), usage.getStatus()));
 
-        // 关联查询设备信息
-        Equipment equipment = this.getById(usage.getEquipmentId());
-        if (equipment != null) {
+        // 从批量查询结果中获取设备信息
+        if (equipmentMap != null && equipmentMap.containsKey(usage.getEquipmentId())) {
+            Equipment equipment = equipmentMap.get(usage.getEquipmentId());
             vo.setEquipmentNo(equipment.getEquipmentNo());
             vo.setEquipmentName(equipment.getName());
         }

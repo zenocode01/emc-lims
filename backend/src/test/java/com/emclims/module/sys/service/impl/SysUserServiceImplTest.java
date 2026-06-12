@@ -8,6 +8,7 @@ import com.emclims.module.sys.dto.SysUserQueryDTO;
 import com.emclims.module.sys.entity.SysDept;
 import com.emclims.module.sys.entity.SysRole;
 import com.emclims.module.sys.entity.SysUser;
+import com.emclims.module.sys.entity.SysUserRole;
 import com.emclims.module.sys.mapper.SysDeptMapper;
 import com.emclims.module.sys.mapper.SysRoleMapper;
 import com.emclims.module.sys.mapper.SysUserRoleMapper;
@@ -279,12 +280,17 @@ class SysUserServiceImplTest {
         dept.setDeptName("测试部");
         when(deptMapper.selectBatchIds(any())).thenReturn(List.of(dept));
 
+        // 批量查询角色相关
+        SysUserRole userRole = new SysUserRole();
+        userRole.setUserId(1L);
+        userRole.setRoleId(20L);
+        when(userRoleMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(userRole));
+
         SysRole role = new SysRole();
         role.setId(20L);
         role.setRoleName("测试角色");
         role.setRoleCode("TEST");
-        when(roleMapper.selectById(20L)).thenReturn(role);
-        when(userRoleMapper.selectRoleIdsByUserId(1L)).thenReturn(List.of(20L));
+        when(roleMapper.selectBatchIds(any())).thenReturn(List.of(role));
 
         Page<SysUserVO> result = spy.pageUsers(queryDTO);
         assertNotNull(result);

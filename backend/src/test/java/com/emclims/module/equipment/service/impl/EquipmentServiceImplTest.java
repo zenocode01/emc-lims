@@ -533,7 +533,7 @@ class EquipmentServiceImplTest {
 
         doReturn(pageResult).when(calibrationMapper).selectPage(any(Page.class), any(LambdaQueryWrapper.class));
         EquipmentServiceImpl spy = spy(equipmentService);
-        doReturn(equipment).when(spy).getById(1L);
+        doReturn(List.of(equipment)).when(spy).listByIds(anyList());
 
         Page<CalibrationVO> result = spy.pageCalibration(queryDTO);
 
@@ -593,7 +593,7 @@ class EquipmentServiceImplTest {
 
         doReturn(pageResult).when(calibrationMapper).selectPage(any(Page.class), any(LambdaQueryWrapper.class));
         EquipmentServiceImpl spy = spy(equipmentService);
-        doReturn(equipment).when(spy).getById(1L);
+        doReturn(List.of(equipment)).when(spy).listByIds(anyList());
 
         Page<CalibrationVO> result = spy.pageCalibration(queryDTO);
 
@@ -628,7 +628,7 @@ class EquipmentServiceImplTest {
 
         doReturn(pageResult).when(calibrationMapper).selectPage(any(Page.class), any(LambdaQueryWrapper.class));
         EquipmentServiceImpl spy = spy(equipmentService);
-        doReturn(equipment).when(spy).getById(1L);
+        doReturn(List.of(equipment)).when(spy).listByIds(anyList());
 
         Page<CalibrationVO> result = spy.pageCalibration(queryDTO);
 
@@ -787,7 +787,7 @@ class EquipmentServiceImplTest {
 
         doReturn(List.of(calibration1, calibration2)).when(calibrationMapper).selectList(any(LambdaQueryWrapper.class));
         EquipmentServiceImpl spy = spy(equipmentService);
-        doReturn(equipment).when(spy).getById(1L);
+        doReturn(List.of(equipment)).when(spy).listByIds(anyList());
 
         List<CalibrationVO> result = spy.getCalibrationHistory(1L);
 

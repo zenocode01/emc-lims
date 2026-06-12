@@ -43,8 +43,8 @@ request.interceptors.response.use(
     }
 
     // 业务逻辑失败
-    message.error(errMsg || msg || '请求失败')
-    return Promise.reject(new Error(errMsg || msg || '请求失败'))
+    message.error(msg || '请求失败')
+    return Promise.reject(new Error(msg || '请求失败'))
   },
   (error) => {
     if (error.response) {

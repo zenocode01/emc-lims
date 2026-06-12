@@ -21,7 +21,7 @@ CREATE INDEX IF NOT EXISTS idx_sys_role_status ON sys_role(status);
 CREATE INDEX IF NOT EXISTS idx_sys_menu_parent_id ON sys_menu(parent_id);
 CREATE INDEX IF NOT EXISTS idx_sys_menu_menu_type ON sys_menu(menu_type);
 CREATE INDEX IF NOT EXISTS idx_sys_menu_path ON sys_menu(path);
-CREATE INDEX IF NOT EXISTS idx_sys_menu_order_num ON sys_menu(order_num);
+CREATE INDEX IF NOT EXISTS idx_sys_menu_sort ON sys_menu(sort);
 
 -- 用户角色关联索引
 CREATE INDEX IF NOT EXISTS idx_sys_user_role_user_id ON sys_user_role(user_id);
@@ -153,17 +153,20 @@ CREATE INDEX IF NOT EXISTS idx_personnel_status ON personnel(status);
 CREATE INDEX IF NOT EXISTS idx_personnel_authorization_personnel_id ON personnel_authorization(personnel_id);
 CREATE INDEX IF NOT EXISTS idx_personnel_authorization_authorization_date ON personnel_authorization(authorization_date DESC);
 CREATE INDEX IF NOT EXISTS idx_personnel_authorization_expire_date ON personnel_authorization(expire_date);
-CREATE INDEX IF NOT EXISTS idx_personnel_authorization_status ON personnel_authorization(status);
+-- personnel_authorization 表无 status 字段，此索引删除
+-- CREATE INDEX IF NOT EXISTS idx_personnel_authorization_status ON personnel_authorization(status);
 
 -- 人员培训记录索引
-CREATE INDEX IF NOT EXISTS idx_personnel_training_personnel_id ON personnel_training(personnel_id);
-CREATE INDEX IF NOT EXISTS idx_personnel_training_train_date ON personnel_training(train_date DESC);
-CREATE INDEX IF NOT EXISTS idx_personnel_training_course ON personnel_training(course);
+-- personnel_training 表在 init.sql 中未创建，需先创建表后再创建索引
+-- CREATE INDEX IF NOT EXISTS idx_personnel_training_personnel_id ON personnel_training(personnel_id);
+-- CREATE INDEX IF NOT EXISTS idx_personnel_training_train_date ON personnel_training(train_date DESC);
+-- CREATE INDEX IF NOT EXISTS idx_personnel_training_course ON personnel_training(course);
 
 -- 能力矩阵索引
-CREATE INDEX IF NOT EXISTS idx_competency_matrix_personnel_id ON competency_matrix(personnel_id);
-CREATE INDEX IF NOT EXISTS idx_competency_matrix_test_item_type ON competency_matrix(test_item_type);
-CREATE INDEX IF NOT EXISTS idx_competency_matrix_assessment_date ON competency_matrix(assessment_date DESC);
+-- competency_matrix 表在 init.sql 中未创建，需先创建表后再创建索引
+-- CREATE INDEX IF NOT EXISTS idx_competency_matrix_personnel_id ON competency_matrix(personnel_id);
+-- CREATE INDEX IF NOT EXISTS idx_competency_matrix_test_item_type ON competency_matrix(test_item_type);
+-- CREATE INDEX IF NOT EXISTS idx_competency_matrix_assessment_date ON competency_matrix(assessment_date DESC);
 
 -- ============================================
 -- 标准管理模块索引
@@ -190,7 +193,7 @@ CREATE INDEX IF NOT EXISTS idx_numbering_rule_status ON sys_numbering_rule(statu
 
 -- 编号序列表索引
 CREATE INDEX IF NOT EXISTS idx_numbering_sequence_rule_code ON sys_numbering_sequence(rule_code);
-CREATE INDEX IF NOT EXISTS idx_numbering_sequence_date ON sys_numbering_sequence(date_str);
+CREATE INDEX IF NOT EXISTS idx_numbering_sequence_date ON sys_numbering_sequence(biz_date);
 
 -- ============================================
 -- 检查索引创建结果

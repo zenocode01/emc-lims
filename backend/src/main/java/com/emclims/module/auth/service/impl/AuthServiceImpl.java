@@ -149,7 +149,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 设置新密码
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         userMapper.updateById(user);
     }
 

@@ -165,7 +165,7 @@ export default function TestPlanPage() {
       width: 100,
       valueType: 'select',
       valueEnum: Object.fromEntries(
-        TEST_PLAN_STATUS_OPTIONS.map((o) => [o.value, { text: o.label, status: TEST_PLAN_STATUS_COLOR[o.value] === 'processing' ? 'Processing' : (TEST_PLAN_STATUS_COLOR[o.value] === 'success' ? 'Success' : 'Default')) }]),
+        TEST_PLAN_STATUS_OPTIONS.map((o) => [o.value, { text: o.label, status: TEST_PLAN_STATUS_COLOR[o.value] === 'processing' ? 'Processing' : (TEST_PLAN_STATUS_COLOR[o.value] === 'success' ? 'Success' : 'Default') }])
       ),
       search: false,
       render: (_, record) => getStatusTag(record.status),

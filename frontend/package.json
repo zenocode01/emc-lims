@@ -10,23 +10,26 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.2.6",
+    "@ant-design/pro-components": "^2.6.46",
+    "@antv/g2plot": "^2.4.31",
     "antd": "^5.12.0",
     "axios": "^1.6.2",
     "dayjs": "^1.11.10",
+    "lodash-es": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.21.0",
-    "@ant-design/pro-components": "^2.6.46",
-    "@ant-design/icons": "^5.2.6",
-    "zustand": "^4.4.7",
-    "lodash-es": "^4.17.21",
     "xlsx": "^0.18.5",
-    "@antv/g2plot": "^2.4.31"
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/parser": "^7.29.7",
+    "@babel/template": "^7.29.7",
+    "@types/lodash-es": "^4.17.12",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
-    "@types/lodash-es": "^4.17.12",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",

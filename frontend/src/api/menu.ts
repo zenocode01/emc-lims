@@ -1,3 +1,4 @@
+import React from 'react'
 import request from './request'
 
 /** 菜单项（动态菜单用） */
@@ -78,7 +79,7 @@ export function menuToRoutes(menus: MenuNode[], basicRoute: React.ComponentType 
         const component = mapComponent(menu.component || 'dashboard/index')
         routes.push({
           path: menu.path || `/${menu.id}`,
-          element: <component />,
+          element: React.createElement(component),
           children: [],
         })
       }

@@ -7,13 +7,19 @@ import com.emclims.module.sample.dto.SampleDTO;
 import com.emclims.module.sample.dto.SampleQueryDTO;
 import com.emclims.module.sample.dto.SampleStatusDTO;
 import com.emclims.module.sample.service.SampleService;
+import com.emclims.module.sample.vo.SampleExportVO;
 import com.emclims.module.sample.vo.SampleLogVO;
 import com.emclims.module.sample.vo.SampleVO;
+import com.alibaba.excel.EasyExcel;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -75,5 +81,20 @@ public class SampleController {
     @GetMapping("/{id}/logs")
     public R<List<SampleLogVO>> logs(@PathVariable Long id) {
         return R.ok(sampleService.getSampleLogs(id));
+    }
+
+    @Operation(summary = "导出样品列表")
+    @GetMapping("/export")
+    public void export(SampleQueryDTO queryDTO, HttpServletResponse response) throws IOException {
+        List<SampleExportVO> list = sampleService.exportSamples(queryDTO);
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String fileName = URLEncoder.encode("样品列表", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
+
+        EasyExcel.write(response.getOutputStream(), SampleExportVO.class)
+                .sheet("样品列表")
+                .doWrite(list);
     }
 }

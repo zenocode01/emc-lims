@@ -18,6 +18,7 @@ import com.emclims.module.sample.enums.SampleStatusEnum;
 import com.emclims.module.sample.mapper.SampleLogMapper;
 import com.emclims.module.sample.mapper.SampleMapper;
 import com.emclims.module.sample.service.SampleService;
+import com.emclims.module.sample.vo.SampleExportVO;
 import com.emclims.module.sample.vo.SampleLogVO;
 import com.emclims.module.sample.vo.SampleVO;
 import com.emclims.module.sys.entity.SysUser;
@@ -27,8 +28,17 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -57,15 +67,7 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
         log.debug("查询样品列表，关键字: {}, 客户ID: {}, 状态: {}", queryDTO.getKeyword(), queryDTO.getCustomerId(), queryDTO.getStatus());
         Page<Sample> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
 
-        LambdaQueryWrapper<Sample> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StrUtil.isNotBlank(queryDTO.getKeyword()), Sample::getSampleNo, queryDTO.getKeyword())
-               .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), Sample::getProductName, queryDTO.getKeyword())
-               .eq(queryDTO.getCustomerId() != null, Sample::getCustomerId, queryDTO.getCustomerId())
-               .eq(StrUtil.isNotBlank(queryDTO.getStatus()), Sample::getStatus, queryDTO.getStatus())
-               .ge(queryDTO.getReceiveDateStart() != null, Sample::getReceiveDate, queryDTO.getReceiveDateStart())
-               .le(queryDTO.getReceiveDateEnd() != null, Sample::getReceiveDate, queryDTO.getReceiveDateEnd())
-               .orderByDesc(Sample::getCreateTime);
-
+        LambdaQueryWrapper<Sample> wrapper = buildQueryWrapper(queryDTO);
         Page<Sample> samplePage = this.page(page, wrapper);
 
         // 批量查询客户和测试员，避免 N+1
@@ -176,6 +178,56 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
             }
             return vo;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * 构建查询条件
+     */
+    private LambdaQueryWrapper<Sample> buildQueryWrapper(SampleQueryDTO queryDTO) {
+        return new LambdaQueryWrapper<Sample>()
+                .and(StrUtil.isNotBlank(queryDTO.getKeyword()), w -> w.like(Sample::getSampleNo, queryDTO.getKeyword())
+                       .or().like(Sample::getProductName, queryDTO.getKeyword()))
+                .eq(queryDTO.getCustomerId() != null, Sample::getCustomerId, queryDTO.getCustomerId())
+                .eq(StrUtil.isNotBlank(queryDTO.getStatus()), Sample::getStatus, queryDTO.getStatus())
+                .ge(queryDTO.getReceiveDateStart() != null, Sample::getReceiveDate, queryDTO.getReceiveDateStart())
+                .le(queryDTO.getReceiveDateEnd() != null, Sample::getReceiveDate, queryDTO.getReceiveDateEnd())
+                .orderByDesc(Sample::getCreateTime);
+    }
+
+    @Override
+    public List<SampleExportVO> exportSamples(SampleQueryDTO queryDTO) {
+        log.debug("导出样品列表，关键字: {}, 客户ID: {}, 状态: {}", queryDTO.getKeyword(), queryDTO.getCustomerId(), queryDTO.getStatus());
+        LambdaQueryWrapper<Sample> wrapper = buildQueryWrapper(queryDTO);
+        List<Sample> samples = this.list(wrapper);
+
+        // 批量查询客户和测试员，避免 N+1
+        List<Long> customerIds = samples.stream().map(Sample::getCustomerId).filter(id -> id != null).distinct().collect(Collectors.toList());
+        Set<Long> userIdSet = new HashSet<>();
+        for (Sample s : samples) {
+            if (s.getTesterId() != null) userIdSet.add(s.getTesterId());
+            if (s.getReceiveBy() != null) userIdSet.add(s.getReceiveBy());
+        }
+        List<Long> allUserIds = new ArrayList<>(userIdSet);
+
+        Map<Long, Customer> customerMap = customerIds.isEmpty() ? Collections.emptyMap() :
+                customerMapper.selectBatchIds(customerIds).stream().collect(Collectors.toMap(Customer::getId, c -> c));
+        Map<Long, SysUser> userMap = allUserIds.isEmpty() ? Collections.emptyMap() :
+                userMapper.selectBatchIds(allUserIds).stream().collect(Collectors.toMap(SysUser::getId, u -> u));
+
+        return samples.stream().map(s -> convertToExportVO(s, customerMap, userMap)).collect(Collectors.toList());
+    }
+
+    /**
+     * 转换为导出 VO
+     */
+    private SampleExportVO convertToExportVO(Sample sample, Map<Long, Customer> customerMap, Map<Long, SysUser> userMap) {
+        SampleExportVO vo = new SampleExportVO();
+        BeanUtils.copyProperties(sample, vo);
+        vo.setStatusName(SampleStatusEnum.fromValue(sample.getStatus()).getLabel());
+        vo.setCustomerName(getCustomerName(sample, customerMap));
+        vo.setTesterName(getUserNickname(sample, sample.getTesterId(), userMap));
+        vo.setReceiveByName(getUserNickname(sample, sample.getReceiveBy(), userMap));
+        return vo;
     }
 
     /**

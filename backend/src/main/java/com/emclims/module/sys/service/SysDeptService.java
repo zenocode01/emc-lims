@@ -2,6 +2,7 @@ package com.emclims.module.sys.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.emclims.module.sys.entity.SysDept;
+import com.emclims.module.sys.vo.SysDeptExportVO;
 import com.emclims.module.sys.vo.SysDeptVO;
 
 import java.util.List;
@@ -35,4 +36,9 @@ public interface SysDeptService extends IService<SysDept> {
      * 删除部门
      */
     void deleteDept(Long id);
+
+    /**
+     * 导出部门列表
+     */
+    List<SysDeptExportVO> exportDepts();
 }

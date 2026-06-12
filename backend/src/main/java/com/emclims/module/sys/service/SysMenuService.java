@@ -6,6 +6,7 @@ import com.emclims.module.sys.entity.SysMenu;
 import com.emclims.module.sys.vo.SysMenuVO;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 菜单 Service
@@ -41,4 +42,9 @@ public interface SysMenuService extends IService<SysMenu> {
      * 删除菜单
      */
     void deleteMenu(Long id);
+
+    /**
+     * 获取用户权限码集合
+     */
+    Set<String> getUserPermissions(Long userId);
 }

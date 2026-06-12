@@ -1,13 +1,19 @@
 package com.emclims.module.sys.controller;
 
+import com.alibaba.excel.EasyExcel;
 import com.emclims.common.response.R;
 import com.emclims.module.sys.entity.SysDept;
 import com.emclims.module.sys.service.SysDeptService;
+import com.emclims.module.sys.vo.SysDeptExportVO;
 import com.emclims.module.sys.vo.SysDeptVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -55,5 +61,20 @@ public class SysDeptController {
     public R<Void> delete(@PathVariable Long id) {
         deptService.deleteDept(id);
         return R.ok();
+    }
+
+    @Operation(summary = "导出部门列表")
+    @GetMapping("/export")
+    public void export(HttpServletResponse response) throws IOException {
+        List<SysDeptExportVO> list = deptService.exportDepts();
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String fileName = URLEncoder.encode("部门列表", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
+
+        EasyExcel.write(response.getOutputStream(), SysDeptExportVO.class)
+                .sheet("部门列表")
+                .doWrite(list);
     }
 }

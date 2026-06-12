@@ -6,6 +6,7 @@ import com.emclims.module.sample.dto.SampleDTO;
 import com.emclims.module.sample.dto.SampleQueryDTO;
 import com.emclims.module.sample.dto.SampleStatusDTO;
 import com.emclims.module.sample.entity.Sample;
+import com.emclims.module.sample.vo.SampleExportVO;
 import com.emclims.module.sample.vo.SampleLogVO;
 import com.emclims.module.sample.vo.SampleVO;
 
@@ -50,4 +51,9 @@ public interface SampleService extends IService<Sample> {
      * 获取样品流转日志
      */
     List<SampleLogVO> getSampleLogs(Long sampleId);
+
+    /**
+     * 导出样品列表
+     */
+    List<SampleExportVO> exportSamples(SampleQueryDTO queryDTO);
 }

@@ -16,8 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -178,5 +180,12 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
             return true;
         }
         return true;
+    }
+
+    @Override
+    public Set<String> getUserPermissions(Long userId) {
+        log.debug("获取用户权限，用户ID: {}", userId);
+        List<String> permissions = this.baseMapper.selectPermissionsByUserId(userId);
+        return new HashSet<>(permissions);
     }
 }

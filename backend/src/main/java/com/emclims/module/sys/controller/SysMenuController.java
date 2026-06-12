@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 菜单管理 Controller
@@ -40,10 +41,15 @@ public class SysMenuController {
     @Operation(summary = "获取当前用户菜单树")
     @GetMapping("/current-user/tree")
     public R<List<MenuTreeNode>> currentUserTree() {
-        // 从 SecurityContext 中获取当前用户ID
-        // 简化处理：先从请求头或参数获取
         Long userId = getCurrentUserId();
         return R.ok(menuService.getMenuTreeByUserId(userId));
+    }
+
+    @Operation(summary = "获取当前用户权限码")
+    @GetMapping("/current-user/permissions")
+    public R<Set<String>> currentUserPermissions() {
+        Long userId = getCurrentUserId();
+        return R.ok(menuService.getUserPermissions(userId));
     }
 
     @Operation(summary = "获取菜单详情")

@@ -48,4 +48,9 @@ public interface SysUserService extends IService<SysUser> {
      * 修改状态
      */
     void updateStatus(Long id, Integer status);
+
+    /**
+     * 导出用户列表
+     */
+    java.util.List<com.emclims.module.sys.vo.SysUserExportVO> exportUsers(SysUserQueryDTO queryDTO);
 }

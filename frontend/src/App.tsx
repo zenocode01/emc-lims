@@ -14,10 +14,12 @@ import CustomerPage from './pages/customer'
 import LoginPage from './pages/login'
 import DashboardPage from './pages/dashboard'
 import NumberingRulePage from './pages/numbering-rule'
+import SamplePage from './pages/sample'
 import UserPage from './pages/sys/user'
 import RolePage from './pages/sys/role'
 import MenuPage from './pages/sys/menu'
 import DeptPage from './pages/sys/dept'
+import { FileTextOutlined, ExperimentOutlined, FileDoneOutlined, ToolOutlined, ProfileOutlined, ReadOutlined } from '@ant-design/icons'
 
 const { Header, Sider, Content } = Layout
 
@@ -36,14 +38,51 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       label: '首页',
     },
     {
-      key: '/customer',
-      icon: <TeamOutlined />,
-      label: '客户管理',
-    },
-    {
-      key: '/numbering-rule',
-      icon: <SettingOutlined />,
-      label: '编号规则',
+      type: 'group' as const,
+      label: '业务管理',
+      icon: <ApartmentOutlined />,
+      children: [
+        {
+          key: '/customer',
+          icon: <TeamOutlined />,
+          label: '客户管理',
+        },
+        {
+          key: '/sample',
+          icon: <FileTextOutlined />,
+          label: '样品管理',
+        },
+        {
+          key: '/test-plan',
+          icon: <ExperimentOutlined />,
+          label: '测试计划',
+        },
+        {
+          key: '/report',
+          icon: <FileDoneOutlined />,
+          label: '报告管理',
+        },
+        {
+          key: '/equipment',
+          icon: <ToolOutlined />,
+          label: '设备管理',
+        },
+        {
+          key: '/personnel',
+          icon: <ProfileOutlined />,
+          label: '人员管理',
+        },
+        {
+          key: '/standard',
+          icon: <ReadOutlined />,
+          label: '标准管理',
+        },
+        {
+          key: '/numbering-rule',
+          icon: <SettingOutlined />,
+          label: '编号规则',
+        },
+      ],
     },
     {
       type: 'group' as const,
@@ -186,6 +225,67 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <CustomerPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sample"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <SamplePage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        {/* 预留页面 */}
+        <Route
+          path="/test-plan"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>测试计划页面开发中...</div>
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/report"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>报告管理页面开发中...</div>
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/equipment"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>设备管理页面开发中...</div>
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/personnel"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>人员管理页面开发中...</div>
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/standard"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>标准管理页面开发中...</div>
               </AppLayout>
             </ProtectedRoute>
           }

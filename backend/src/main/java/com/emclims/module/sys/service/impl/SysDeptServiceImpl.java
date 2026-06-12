@@ -6,6 +6,7 @@ import com.emclims.common.exception.BusinessException;
 import com.emclims.module.sys.entity.SysDept;
 import com.emclims.module.sys.mapper.SysDeptMapper;
 import com.emclims.module.sys.service.SysDeptService;
+import com.emclims.module.sys.vo.SysDeptExportVO;
 import com.emclims.module.sys.vo.SysDeptVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -99,5 +100,42 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
             throw new BusinessException("该部门下还有子部门，不能删除");
         }
         this.removeById(id);
+    }
+
+    @Override
+    public List<SysDeptExportVO> exportDepts() {
+        log.debug("导出部门列表");
+        List<SysDept> allDepts = this.list();
+        return allDepts.stream()
+                .map(this::convertToExportVO)
+                .collect(Collectors.toList());
+    }
+
+    private SysDeptExportVO convertToExportVO(SysDept dept) {
+        SysDeptExportVO vo = new SysDeptExportVO();
+        BeanUtils.copyProperties(dept, vo);
+
+        // 部门类型名称转换
+        if (dept.getDeptType() != null) {
+            switch (dept.getDeptType()) {
+                case 1 -> vo.setDeptTypeName("公司");
+                case 2 -> vo.setDeptTypeName("部门");
+                case 3 -> vo.setDeptTypeName("小组");
+                default -> vo.setDeptTypeName("未知");
+            }
+        }
+
+        // 状态名称转换
+        vo.setStatusName(dept.getStatus() != null && dept.getStatus() == 1 ? "启用" : "禁用");
+
+        // 父部门名称
+        if (dept.getParentId() != null && dept.getParentId() > 0) {
+            SysDept parent = this.getById(dept.getParentId());
+            if (parent != null) {
+                vo.setParentName(parent.getDeptName());
+            }
+        }
+
+        return vo;
     }
 }

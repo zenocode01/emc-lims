@@ -3,16 +3,23 @@ package com.emclims.module.sys.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.emclims.common.response.R;
 import com.emclims.common.response.PageResult;
+import com.emclims.common.security.SecurityUtils;
 import com.emclims.module.sys.dto.SysUserDTO;
 import com.emclims.module.sys.dto.SysUserQueryDTO;
 import com.emclims.module.sys.entity.SysUser;
 import com.emclims.module.sys.service.SysUserService;
+import com.emclims.module.sys.vo.SysUserExportVO;
 import com.emclims.module.sys.vo.SysUserVO;
+import com.alibaba.excel.EasyExcel;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -75,5 +82,23 @@ public class SysUserController {
     public R<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status) {
         userService.updateStatus(id, status);
         return R.ok();
+    }
+
+    @Operation(summary = "获取当前登录用户信息")
+    @GetMapping("/current")
+    public R<SysUserVO> getCurrentUser() {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        return R.ok(userService.getUserDetail(currentUserId));
+    }
+
+    @Operation(summary = "导出用户列表")
+    @GetMapping("/export")
+    public void export(SysUserQueryDTO queryDTO, HttpServletResponse response) throws IOException {
+        List<SysUserExportVO> list = userService.exportUsers(queryDTO);
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String fileName = URLEncoder.encode("用户列表_" + System.currentTimeMillis(), "UTF-8")
+                .replaceAll("\\+", "%20");
+        EasyExcel.write(response.getOutputStream(), SysUserExportVO.class).sheet("用户列表").doWrite(list);
     }
 }

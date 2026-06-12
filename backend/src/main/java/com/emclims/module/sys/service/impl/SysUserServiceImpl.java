@@ -16,6 +16,7 @@ import com.emclims.module.sys.mapper.SysRoleMapper;
 import com.emclims.module.sys.mapper.SysUserMapper;
 import com.emclims.module.sys.mapper.SysUserRoleMapper;
 import com.emclims.module.sys.service.SysUserService;
+import com.emclims.module.sys.vo.SysUserExportVO;
 import com.emclims.module.sys.vo.SysUserVO;
 import com.emclims.module.sample.entity.Sample;
 import com.emclims.module.sample.mapper.SampleMapper;
@@ -275,6 +276,98 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (role != null) {
             vo.setRoleName(role.getRoleName());
             vo.setRoleCode(role.getRoleCode());
+        }
+    }
+
+    @Override
+    public java.util.List<SysUserExportVO> exportUsers(SysUserQueryDTO queryDTO) {
+        log.debug("导出用户列表，关键字: {}, 部门ID: {}, 状态: {}", queryDTO.getKeyword(), queryDTO.getDeptId(), queryDTO.getStatus());
+
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(StrUtil.isNotBlank(queryDTO.getKeyword()), SysUser::getPhone, queryDTO.getKeyword())
+               .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), SysUser::getNickname, queryDTO.getKeyword())
+               .or().like(StrUtil.isNotBlank(queryDTO.getKeyword()), SysUser::getEmployeeCode, queryDTO.getKeyword())
+               .eq(queryDTO.getDeptId() != null, SysUser::getDeptId, queryDTO.getDeptId())
+               .eq(queryDTO.getStatus() != null, SysUser::getStatus, queryDTO.getStatus())
+               .between(queryDTO.getCreateTimeStart() != null && queryDTO.getCreateTimeEnd() != null,
+                       SysUser::getCreateTime, queryDTO.getCreateTimeStart(), queryDTO.getCreateTimeEnd())
+               .exists(queryDTO.getRoleId() != null,
+                       "SELECT 1 FROM sys_user_role WHERE user_id = sys_user.id AND role_id = {0}", queryDTO.getRoleId())
+               .orderByDesc(SysUser::getCreateTime);
+
+        List<SysUser> userList = this.list(wrapper);
+
+        // 批量查询部门
+        List<Long> deptIds = userList.stream()
+                .map(SysUser::getDeptId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+        java.util.Map<Long, SysDept> deptMap = deptIds.isEmpty() ? java.util.Collections.emptyMap() :
+                deptMapper.selectBatchIds(deptIds).stream()
+                        .collect(Collectors.toMap(SysDept::getId, d -> d));
+
+        // 批量查询用户默认角色
+        java.util.Map<Long, SysRole> defaultRoleMap = buildDefaultRoleMap(userList);
+
+        // 转换为导出VO
+        return userList.stream().map(user -> {
+            SysUserExportVO vo = new SysUserExportVO();
+            vo.setUsername(user.getUsername());
+            vo.setNickname(user.getNickname());
+            vo.setPhone(user.getPhone());
+            vo.setEmail(user.getEmail());
+            vo.setSexName(convertSexName(user.getSex()));
+            vo.setStatusName(convertStatusName(user.getStatus()));
+            vo.setPost(user.getPost());
+            vo.setEmployeeCode(user.getEmployeeCode());
+            vo.setCreateTime(user.getCreateTime());
+            populateDeptNameForExport(vo, user.getDeptId(), deptMap);
+            populateDefaultRoleForExport(vo, user.getId(), defaultRoleMap);
+            return vo;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 转换性别名称
+     */
+    private String convertSexName(Integer sex) {
+        if (sex == null) {
+            return "未知";
+        }
+        return switch (sex) {
+            case 1 -> "男";
+            case 2 -> "女";
+            default -> "未知";
+        };
+    }
+
+    /**
+     * 转换状态名称
+     */
+    private String convertStatusName(Integer status) {
+        if (status == null) {
+            return "禁用";
+        }
+        return status == 1 ? "启用" : "禁用";
+    }
+
+    /**
+     * 填充部门名称（导出用）
+     */
+    private void populateDeptNameForExport(SysUserExportVO vo, Long deptId, java.util.Map<Long, SysDept> deptMap) {
+        if (deptId != null && deptMap.containsKey(deptId)) {
+            vo.setDeptName(deptMap.get(deptId).getDeptName());
+        }
+    }
+
+    /**
+     * 填充默认角色信息（导出用）
+     */
+    private void populateDefaultRoleForExport(SysUserExportVO vo, Long userId, java.util.Map<Long, SysRole> defaultRoleMap) {
+        SysRole role = defaultRoleMap.get(userId);
+        if (role != null) {
+            vo.setRoleName(role.getRoleName());
         }
     }
 }

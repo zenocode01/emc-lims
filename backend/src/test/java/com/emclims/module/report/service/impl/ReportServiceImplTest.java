@@ -125,7 +125,8 @@ class ReportServiceImplTest {
         doReturn(List.of(sample)).when(sampleMapper).selectBatchIds(anyList());
         doReturn(Collections.emptyList()).when(userMapper).selectBatchIds(anyList());
 
-       ReportServiceImpl spy = spy(reportService);
+        ReportServiceImpl spy = spy(reportService);
+        doReturn(pageResult).when(spy).page(any(Page.class), any(LambdaQueryWrapper.class));
 
         Page<ReportVO> result = spy.pageReports(queryDTO);
 
@@ -144,17 +145,13 @@ class ReportServiceImplTest {
         ReportQueryDTO queryDTO = new ReportQueryDTO();
         queryDTO.setPageNum(1);
         queryDTO.setPageSize(10);
+        queryDTO.setCreateTimeEnd(LocalDate.of(2025, 12, 31));
 
         Page<Report> pageResult = new Page<>(1, 10, 0);
         pageResult.setRecords(Collections.emptyList());
 
-        doReturn(Collections.emptyList()).when(customerMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(sampleMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(userMapper).selectBatchIds(anyList());
-
-               ReportServiceImpl spy = spy(reportService);
+        ReportServiceImpl spy = spy(reportService);
         doReturn(pageResult).when(spy).page(any(Page.class), any(LambdaQueryWrapper.class));
-
 
         Page<ReportVO> result = spy.pageReports(queryDTO);
 

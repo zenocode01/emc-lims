@@ -15,6 +15,8 @@ import LoginPage from './pages/login'
 import DashboardPage from './pages/dashboard'
 import NumberingRulePage from './pages/numbering-rule'
 import SamplePage from './pages/sample'
+import ReportPage from './pages/report'
+import TestPlanPage from './pages/test-plan'
 import UserPage from './pages/sys/user'
 import RolePage from './pages/sys/role'
 import MenuPage from './pages/sys/menu'
@@ -239,23 +241,24 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* 预留页面 */}
+        {/* 测试管理页面 */}
         <Route
           path="/test-plan"
           element={
             <ProtectedRoute>
               <AppLayout>
-                <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>测试计划页面开发中...</div>
+                <TestPlanPage />
               </AppLayout>
             </ProtectedRoute>
           }
         />
+        {/* 报告管理页面 */}
         <Route
           path="/report"
           element={
             <ProtectedRoute>
               <AppLayout>
-                <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>报告管理页面开发中...</div>
+                <ReportPage />
               </AppLayout>
             </ProtectedRoute>
           }

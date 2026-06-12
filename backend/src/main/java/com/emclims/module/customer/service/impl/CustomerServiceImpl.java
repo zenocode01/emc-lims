@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.emclims.common.exception.BusinessException;
+import com.emclims.common.util.ConvertUtils;
 import com.emclims.module.customer.dto.CustomerDTO;
 import com.emclims.module.customer.dto.CustomerQueryDTO;
 import com.emclims.module.customer.entity.Customer;
@@ -34,13 +35,7 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
         LambdaQueryWrapper<Customer> wrapper = buildQueryWrapper(queryDTO);
         Page<Customer> customerPage = this.page(page, wrapper);
 
-        List<CustomerVO> voList = customerPage.getRecords().stream()
-                .map(this::convertToVO)
-                .collect(Collectors.toList());
-
-        Page<CustomerVO> result = new Page<>(customerPage.getCurrent(), customerPage.getSize(), customerPage.getTotal());
-        result.setRecords(voList);
-        return result;
+        return ConvertUtils.toPage(customerPage, this::convertToVO);
     }
 
     @Override
@@ -113,9 +108,7 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
         log.debug("导出客户列表，关键字: {}", queryDTO.getKeyword());
         LambdaQueryWrapper<Customer> wrapper = buildQueryWrapper(queryDTO);
         List<Customer> customers = this.list(wrapper);
-        return customers.stream()
-                .map(this::convertToExportVO)
-                .collect(Collectors.toList());
+        return ConvertUtils.toList(customers, this::convertToExportVO);
     }
 
     /**

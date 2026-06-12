@@ -122,9 +122,7 @@ class TestPlanServiceImplTest {
         Page<TestPlan> pageResult = new Page<>(1, 10, 0);
         pageResult.setRecords(Collections.emptyList());
 
-        doReturn(Collections.emptyList()).when(sampleMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(customerMapper).selectBatchIds(anyList());
-                TestPlanServiceImpl spy = spy(testPlanService);
+        TestPlanServiceImpl spy = spy(testPlanService);
         doReturn(pageResult).when(spy).page(any(Page.class), any(LambdaQueryWrapper.class));
 
         Page<TestPlanVO> result = spy.pageTestPlans(null, null, 1, 10);

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.emclims.common.exception.BusinessException;
 import com.emclims.common.numbering.NumberingRuleEngine;
+import com.emclims.common.util.ConvertUtils;
 import com.emclims.module.customer.entity.Customer;
 import com.emclims.module.customer.mapper.CustomerMapper;
 import com.emclims.module.sample.dto.SampleDTO;
@@ -214,7 +215,7 @@ public class SampleServiceImpl extends ServiceImpl<SampleMapper, Sample> impleme
         Map<Long, SysUser> userMap = allUserIds.isEmpty() ? Collections.emptyMap() :
                 userMapper.selectBatchIds(allUserIds).stream().collect(Collectors.toMap(SysUser::getId, u -> u));
 
-        return samples.stream().map(s -> convertToExportVO(s, customerMap, userMap)).collect(Collectors.toList());
+        return ConvertUtils.toList(samples, s -> convertToExportVO(s, customerMap, userMap));
     }
 
     /**

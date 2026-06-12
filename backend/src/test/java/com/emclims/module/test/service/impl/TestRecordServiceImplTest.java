@@ -149,11 +149,6 @@ class TestRecordServiceImplTest {
         Page<TestRecord> pageResult = new Page<>(1, 10, 0);
         pageResult.setRecords(Collections.emptyList());
 
-        doReturn(Collections.emptyList()).when(testPlanMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(sampleMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(testItemMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(userMapper).selectBatchIds(anyList());
-
         TestRecordServiceImpl spy = spy(testRecordService);
         doReturn(pageResult).when(spy).page(any(Page.class), any(LambdaQueryWrapper.class));
 
@@ -483,7 +478,6 @@ class TestRecordServiceImplTest {
         doReturn(testPlan).when(testPlanMapper).selectById(100L);
         doReturn(null).when(sampleMapper).selectById(50L);
         doReturn(null).when(testItemMapper).selectById(200L);
-        doReturn(null).when(userMapper).selectById(null);
 
         TestRecordServiceImpl spy = spy(testRecordService);
         doReturn(record).when(spy).getById(1L);

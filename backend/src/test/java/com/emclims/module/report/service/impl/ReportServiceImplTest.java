@@ -188,12 +188,9 @@ class ReportServiceImplTest {
         pageResult.setRecords(List.of(report));
 
         doReturn(List.of(customer)).when(customerMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(sampleMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(userMapper).selectBatchIds(anyList());
 
-               ReportServiceImpl spy = spy(reportService);
+        ReportServiceImpl spy = spy(reportService);
         doReturn(pageResult).when(spy).page(any(Page.class), any(LambdaQueryWrapper.class));
-
 
         Page<ReportVO> result = spy.pageReports(queryDTO);
 
@@ -221,13 +218,8 @@ class ReportServiceImplTest {
         Page<Report> pageResult = new Page<>(1, 10, 1);
         pageResult.setRecords(List.of(report));
 
-        doReturn(Collections.emptyList()).when(customerMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(sampleMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(userMapper).selectBatchIds(anyList());
-
-               ReportServiceImpl spy = spy(reportService);
+        ReportServiceImpl spy = spy(reportService);
         doReturn(pageResult).when(spy).page(any(Page.class), any(LambdaQueryWrapper.class));
-
 
         Page<ReportVO> result = spy.pageReports(queryDTO);
 
@@ -255,13 +247,8 @@ class ReportServiceImplTest {
         Page<Report> pageResult = new Page<>(1, 10, 1);
         pageResult.setRecords(List.of(report));
 
-        doReturn(Collections.emptyList()).when(customerMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(sampleMapper).selectBatchIds(anyList());
-        doReturn(Collections.emptyList()).when(userMapper).selectBatchIds(anyList());
-
-               ReportServiceImpl spy = spy(reportService);
+        ReportServiceImpl spy = spy(reportService);
         doReturn(pageResult).when(spy).page(any(Page.class), any(LambdaQueryWrapper.class));
-
 
         Page<ReportVO> result = spy.pageReports(queryDTO);
 
@@ -930,7 +917,6 @@ class ReportServiceImplTest {
        ReportServiceImpl spy = spy(reportService);
         doReturn(report).when(spy).getById(1L);
         doReturn(List.of(auditLog)).when(auditLogMapper).selectList(any(LambdaQueryWrapper.class));
-        doReturn(Collections.emptyList()).when(userMapper).selectBatchIds(anyList());
 
         List<ReportAuditLogVO> result = spy.getAuditLogs(1L);
 
